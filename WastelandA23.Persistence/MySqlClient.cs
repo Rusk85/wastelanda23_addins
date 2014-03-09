@@ -11,14 +11,17 @@ namespace WastelandA23.Persistence
     {
         private string conStr;
         private IConStr conStrObj;
-
+        Func<string[], string> tS;
+        Func<string, string> rQ;
 
         
         public MySqlClient() 
         {
             conStrObj = new ConStr();
             conStr = DBCONFIG.getConnectionString(conStrObj, DbSchema.simple);
-            InvocationMethod = new FFAsyncAddinInvocationMethod(this);
+            tS = toString;
+            rQ = removeQuotes;
+            InvocationMethod = new AsyncAddinInvocationMethod(this);
         }
 
 
@@ -31,7 +34,7 @@ namespace WastelandA23.Persistence
             }
             catch (Exception e)
             {
-                log(e.Message);
+                log(e.Message); 
             }
             return null;
         }
@@ -39,11 +42,15 @@ namespace WastelandA23.Persistence
 
         private string proccessSQFCall(string raw_data)
         {
-            string[] data = raw_data.Split(new char[]{','}, 2);
+            
+            string[] data = rQ(raw_data).Split(new char[]{','}, 3);
+            log(tS(data));
             var command = data[0];
+            log(command);
 
             if (command == Command.SAVE_LOADOUT.ToString())
             {
+                log("IS SAVE_LOADOUT");
                 saveLoadout(new string[] { data[1], data[2] });
                 return null;
             }
@@ -51,6 +58,7 @@ namespace WastelandA23.Persistence
             {
                 return "getLoadout()";
             }
+            log("IS_NO_COMMAND");
             return null;
         }
 
@@ -60,9 +68,11 @@ namespace WastelandA23.Persistence
             Func<string, string> qP = quoteParam;
             var player_uid = qP(loadout_data[0]);
             var loadout = qP(loadout_data[1]);
+            log(tS(loadout_data));
 
             var cmd = new MySqlConnection(conStr).CreateCommand();
             cmd.CommandText = String.Format(@"INSERT INTO player(uid,loadout) VALUES ({0},{1}) ON DUPLICATE KEY UPDATE loadout={1}", player_uid, loadout);
+            log(cmd.CommandText);
             cmd.Connection.Open();
             cmd.ExecuteNonQuery();
             cmd.Connection.Close();
@@ -72,6 +82,11 @@ namespace WastelandA23.Persistence
         private string quoteParam(string param)
         {
             return "'" + param + "'";
+        }
+
+        private string removeQuotes(string str)
+        {
+            return str.Replace("\"", "");
         }
 
 
@@ -88,6 +103,16 @@ namespace WastelandA23.Persistence
             w.WriteLine(DateTime.Now + ": " + msg);
             w.Flush();
             w.Close();
+        }
+
+        public string toString(string[] array)
+        {
+            var ret = "";
+            foreach (string s in array)
+            {
+                ret += s + ";";
+            }
+            return ret;
         }
 
 
