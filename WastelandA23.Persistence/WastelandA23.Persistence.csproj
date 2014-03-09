@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config\CommandMapping.cs" />
     <Compile Include="Config\ConStr.cs" />
     <Compile Include="Config\DBCONFIG.cs" />
     <Compile Include="Config\DBENUMS.cs" />

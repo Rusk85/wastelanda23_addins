@@ -14,7 +14,7 @@ namespace WastelandA23
     public static class DBCONFIG
     {
 
-        static string getConnectionString(IConStr conStr, DbSchema dbSchema)
+        public static string getConnectionString(IConStr conStr, DbSchema dbSchema)
         {
             return conStr.getConnectionString(dbSchema);
         }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WastelandA23.Persistence.Config
 {
-    interface IConStr
+    public interface IConStr
     {
         string getConnectionString(DbSchema dbSchema);
     }
