@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WastelandA23.Persistence.Config;
+using WastelandA23.Database;
 
 namespace WastelandA23
 {
@@ -14,9 +14,16 @@ namespace WastelandA23
     public static class DBCONFIG
     {
 
-        public static string getConnectionString(IConStr conStr, DbSchema dbSchema)
+
+        private static ConStrLoader conStrLoader = new ConStrLoader();
+
+
+        public static string getConnectionString(DbSchema dbSchema)
         {
-            return conStr.getConnectionString(dbSchema);
+            var dic = conStrLoader.conStrDic;
+            string ret = String.Empty;
+            dic.TryGetValue(dbSchema.ToString(), out ret);
+            return ret;
         }
 
 

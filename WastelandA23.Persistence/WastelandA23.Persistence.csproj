@@ -24,7 +24,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\Release\%40Arma2NET\AddIns\WastelandA23.Persistence\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -40,11 +40,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config\Database\ConStrLoader.cs" />
     <Compile Include="Config\Wasteland\CommandMapping.cs" />
-    <Compile Include="Config\Database\ConStr.cs" />
     <Compile Include="Config\Database\DBCONFIG.cs" />
     <Compile Include="Config\Database\DBENUMS.cs" />
-    <Compile Include="Config\Database\IConStr.cs" />
     <Compile Include="Modules\Loadout\SimpleLoadout.cs" />
     <Compile Include="Modules\Marshalling\AbstractMarshalling.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Items\AssignedItems.cs" />
@@ -73,6 +72,7 @@
     <ProjectReference Include="..\Arma2Net\Arma2Net.vcxproj">
       <Project>{8d2448b2-b12a-4c5d-b2ee-f6717a6918c9}</Project>
       <Name>Arma2Net</Name>
+      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

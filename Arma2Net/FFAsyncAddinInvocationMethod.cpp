@@ -15,10 +15,8 @@
 */
 
 #include "Addin.h"
-#include "Guid.h"
 
 using namespace System;
-using namespace System::Collections::Generic;
 using namespace System::Threading::Tasks;
 
 namespace Arma2Net
@@ -52,6 +50,7 @@ namespace Arma2Net
 
 				auto tuple = Tuple::Create(argsCopy, maxResultSize);
 				Task^ task = Task::Factory->StartNew(gcnew Action<Object^>(this, &FFAsyncAddinInvocationMethod::InvokeImpl), tuple);
+
 				return nullptr;
 		}
 	};

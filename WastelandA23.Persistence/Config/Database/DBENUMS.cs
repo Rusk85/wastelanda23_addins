@@ -9,8 +9,8 @@ namespace WastelandA23
 
     public enum DbSchema
     {
-        complex,
-        simple
+        COMPLEX,
+        SIMPLE
     }
 
 }

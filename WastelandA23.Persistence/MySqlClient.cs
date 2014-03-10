@@ -1,6 +1,6 @@
 ﻿using Arma2Net;
 using MySql.Data.MySqlClient;
-using WastelandA23.Persistence.Config;
+using WastelandA23.Database;
 using System;
 using System.IO;
 
@@ -10,15 +10,13 @@ namespace WastelandA23.Persistence
     class MySqlClient : Addin
     {
         private string conStr;
-        private IConStr conStrObj;
         Func<string[], string> tS;
         Func<string, string> rQ;
 
         
         public MySqlClient() 
         {
-            conStrObj = new ConStr();
-            conStr = DBCONFIG.getConnectionString(conStrObj, DbSchema.simple);
+            conStr = DBCONFIG.getConnectionString(DbSchema.SIMPLE);
             tS = toString;
             rQ = removeQuotes;
             InvocationMethod = new AsyncAddinInvocationMethod(this);
