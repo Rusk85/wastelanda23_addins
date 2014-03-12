@@ -64,6 +64,7 @@
     <Compile Include="Modules\Marshalling\Loadout\Containers\UniformItems.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Containers\Vest.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Containers\VestItems.cs" />
+    <Compile Include="Modules\Marshalling\Marshaller.cs" />
     <Compile Include="Modules\Marshalling\Player.cs" />
     <Compile Include="MySqlClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
