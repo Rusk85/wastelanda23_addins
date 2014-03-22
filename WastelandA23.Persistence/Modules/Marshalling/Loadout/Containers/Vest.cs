@@ -11,6 +11,8 @@ namespace WastelandA23.Marshalling.Loadout
 
         public VestItems vestItems { get; private set; }
 
+        public Vest() { }
+
         public Vest(VestItems vestItems)
         {
             this.vestItems = vestItems;

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WastelandA23.Marshalling.Loadout
 {
-    class Loadout
+    public class Loadout
     {
 
         public AssignedItems assigendItems { get; private set; }
@@ -16,6 +16,7 @@ namespace WastelandA23.Marshalling.Loadout
         public Vest vest { get; private set; }
         public Backpack backpack { get; private set; }
 
+        public Loadout() { }
 
         Loadout(AssignedItems assigendItems,
                 PrimaryWeapon primaryWeapon,

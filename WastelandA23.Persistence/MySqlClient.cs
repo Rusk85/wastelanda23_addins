@@ -96,7 +96,7 @@ namespace WastelandA23.Persistence
 
         public void log(string msg)
         {
-            string path = @"E:\Games\ArmA3\a3master\logs\" + this.GetType().Assembly.ToString() + ".txt";
+            string path = @"D:\Program Files (x86)\Steam\SteamApps\common\Arma 3\logs" + this.GetType().Assembly.ToString() + ".txt";
             var w = File.AppendText(path);
             w.WriteLine(DateTime.Now + ": " + msg);
             w.Flush();
@@ -112,7 +112,5 @@ namespace WastelandA23.Persistence
             }
             return ret;
         }
-
-
     }
 }

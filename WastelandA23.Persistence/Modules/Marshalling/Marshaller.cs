@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Collections;
@@ -131,7 +132,7 @@ namespace WastelandA23.Marshalling
                 {
                     r = eStr.Replace(rep, String.Empty);
                 }
-                if (r != String.Empty){ elemList.Add(new Element() { ClassName = r, Level = range.Level, Position = pos.Value }); }
+                if (r != String.Empty) { elemList.Add(new Element() { ClassName = r, Level = range.Level, Position = pos.Value }); }
             }
 
             #if DEBUG
@@ -139,7 +140,7 @@ namespace WastelandA23.Marshalling
             {
                 Debug.WriteLine(String.Format("ClassName {0} | Level {1} | Position {2}", e.ClassName, e.Level, e.Position));
             }
-            #endif   
+            #endif
             if (elemList.Count == 0) { return; }
             Elements = Elements.Concat(elemList).ToList();
         }
@@ -235,6 +236,301 @@ namespace WastelandA23.Marshalling
             return p;
         }
 
+        public class ListBlock
+        {
+            public ListBlock() { }
+            public ListBlock(string value)
+            {
+                this.value = value;
+            }
 
+            public ListBlock(List<ListBlock> block)
+            {
+                this.block = block;
+            }
+
+            public void addElement(ListBlock block) {
+                if (this.block == null)
+                {
+                    this.block = new List<ListBlock>();
+                }
+                this.block.Add(block);
+            }
+
+            public bool isEmpty() { return !isValue() && !isArray(); }
+            public bool isValue() { return value != null;  }
+            public bool isArray() { return block != null;  }
+
+            public string value = null;
+            public List<ListBlock> block = null;
+        }
+
+
+        
+        //static string test = "[[SAVE_COMMAND,76561197964280320],[1.2, 3.4]]";
+
+        static List<string> explodeIfNotEscaped(string str, char blockStart, char blockEnd, char delimiter)
+        {
+            List<string> result = new List<string>();
+
+            if (String.IsNullOrEmpty(str))
+            {
+                return result;
+            }
+
+            int start = 0;
+            Boolean ignore = false;
+
+            for (int i = 0; i < str.Length; ++i)
+            {
+                char current = str[i];
+
+                if (current == blockStart)
+                {
+                    ignore = true;
+                }
+                if (current == blockEnd)
+                {
+                    ignore = false;
+                }
+
+                if ((current == delimiter || i == str.Length - 1) && !ignore)
+                {
+                    var end = i;
+                    if (current == delimiter)
+                    {
+                        end--;
+                    }
+                    string sub = str.Substring(start, end - start + 1);
+                    result.Add(sub);
+                    start = i + 1;
+                }
+            }
+            return result;
+        }
+
+        static string trimOnce(string str, string beginString, string endString)
+        {
+            if (String.IsNullOrEmpty(str))
+            {
+                return str;
+            }
+
+            if (str.StartsWith(beginString) && str.EndsWith(endString))
+            {
+                return str.Substring(beginString.Length, str.Length - 1 - endString.Length);
+            }
+            return str;
+        }
+
+        static public ListBlock explodeNested(string str)
+        {
+            ListBlock result = new ListBlock();
+
+            if (String.IsNullOrEmpty(str))
+            {
+                result.value = "";
+                return result;
+            }
+
+            str = trimOnce(str, "[", "]");
+
+            if (!str.StartsWith("[") && !str.EndsWith("]"))
+            {
+                var valueList = explodeIfNotEscaped(str, '\"', '\"', ',');
+                result.block = valueList.Select(f => new ListBlock(f)).ToList();
+                return result;
+            }
+
+            int braceBalanced = 0;
+            int start = 0;
+            int end = 0;
+
+            for (int i = start; i < str.Length; ++i)
+            {
+                if (str[i] == '[')
+                {
+                    braceBalanced++;
+                }
+
+                if (str[i] == ']')
+                {
+                    braceBalanced--;
+                }
+
+                if (braceBalanced == 0 && (str[i] == ',' || i == str.Length - 1))
+                {
+                    end = str.Length - 1;
+                    if (str[i] == ',')
+                    {
+                        end = i - 1;
+                    }
+
+                    string sub = str.Substring(start, end - start + 1);
+
+                    if (sub.StartsWith("[") && sub.EndsWith("]"))
+                    {
+                        result.addElement(explodeNested(sub));
+                    }
+                    start = i + 1;
+                }
+            }
+            return result;
+        }
+
+        static public IDictionary<int, Tuple<MemberInfo, Func<string, Object>>> createParamNumberDictionary(Type type)
+        {
+            Func<MemberInfo, bool> hasParamAttribute = delegate(MemberInfo m) { return m.GetCustomAttribute(typeof(ParamNumberAttribute)) != null; };
+
+            var fields = type.FindMembers(MemberTypes.Property | MemberTypes.Field,
+                                          BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly,
+                                          (a, b) => true,
+                                          null);
+            var filteredFields = fields.Where(hasParamAttribute).ToArray();
+            IEnumerable<Tuple<MemberInfo, Func<string, Object>, int>> indexMapping;
+
+            //if no param annotations are given, assume
+            //that all members in declaration order are meant
+            if (filteredFields.Length == 0)
+            {
+                filteredFields = fields;
+                indexMapping = filteredFields.Select((m, i) => Tuple.Create(m, null as Func<string, Object>, i));
+            }
+            else
+            {
+                indexMapping = filteredFields.Select(delegate(MemberInfo m) 
+                {
+                    var param = (ParamNumberAttribute)m.GetCustomAttribute(typeof(ParamNumberAttribute));
+                    return Tuple.Create(m, param.converterFunc, param.parameterIndex);
+                });
+            }
+
+            return indexMapping.ToDictionary(t => t.Item3, t => Tuple.Create(t.Item1, t.Item2));
+        }
+
+        static private string marshalFrom(ListBlock from) 
+        {
+            if (!from.isValue())
+            {
+                throw new ArgumentException("Failed to marshal, from does not represent a string, and target is a string");
+            }
+            return from.value;
+        }
+
+        static private IList<string> marshalFrom(IList<ListBlock> from)
+        {
+            return from.Select(i => i.value).ToList();
+        }
+
+        static private IList<T> marshalFrom<T>(IList<ListBlock> from) where T : class
+        {
+            var list = (IList<T>)Activator.CreateInstance((typeof(List<>).MakeGenericType(typeof(T))));
+            return (IList<T>)from.Select(i => marshalFrom<T>(i) as T).ToList();
+        }
+
+        static private T marshalFromBase<T>(ListBlock from) where T : class
+        {
+            return marshalFrom<T>(from);
+        }
+
+        static public T marshalFrom<T>(ListBlock from) where T: class
+        {
+            T result = (T)Activator.CreateInstance(typeof(T)); 
+            if (from == null || from.isEmpty())
+            {
+                
+                return result;
+            }
+
+            Type type = typeof(T);
+            bool outputIsArray = type.IsArray;
+            bool inputIsArray = from.isArray();
+
+            //array ^= array
+            if (outputIsArray && inputIsArray)
+            {
+                Type elementType = type.GetElementType();
+
+                var list = (IList<Object>)Activator.CreateInstance((typeof(List<>).MakeGenericType(elementType))); 
+                list = list.Concat(marshalFrom(from.block)).ToList();
+                return (T)list;
+            }
+            //object ^= array
+            else if (!outputIsArray && inputIsArray)
+            {
+                return marshalObjectFrom<T>(from.block);
+            }
+            //object (one member) ^= scalar
+            else if (!outputIsArray && !inputIsArray)
+            {
+                return marshalObjectFrom<T>(new ListBlock[] { from });
+            }
+            // array ^= scalar -> invalid
+            else if (outputIsArray && !inputIsArray)
+            {
+                throw new ArgumentException("Failed to marshal, trying to combine array with scalar");
+            }
+            return result;
+        }
+
+        static private T marshalObjectFrom<T>(IList<ListBlock> from) where T : class
+        {
+            T result = (T)Activator.CreateInstance(typeof(T));
+
+            if (from.Count == 0) { return result; }
+
+            var dict = createParamNumberDictionary(typeof(T));
+            if (dict.Count != from.Count)
+            {
+                throw new ArgumentException("Failed to marshal, (case array -> object), unequal length", typeof(T).Name);
+            }
+
+            foreach (var pair in dict)
+            {
+                var key = pair.Key;
+                var value = pair.Value;
+                var memberInfo = value.Item1;
+                var converter = value.Item2;
+                var item = from[key];
+                Action<Object, Object> setFunc = null;
+                Type type = null;
+
+                if (memberInfo is FieldInfo)
+                {
+                    var field = memberInfo as FieldInfo;
+                    setFunc = field.SetValue;
+                    type = field.FieldType;
+                }
+
+                if (memberInfo is PropertyInfo)
+                {
+                    var property = memberInfo as PropertyInfo;
+                    setFunc = property.SetValue;
+                    type = property.PropertyType;
+                }
+
+                //direct assignment
+                if (item.isValue())
+                {
+                    var newValue = (converter == null) ? (item.value) : (converter(item.value));
+                    setFunc(result, newValue);
+                }
+                else
+                {
+                    var fullTypeName = type.Name;
+                    var castMethod = typeof(Marshaller).GetMethod("marshalFromBase", BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(type);
+                    var newValue = castMethod.Invoke(null, new object[] { item });
+                    setFunc(result, newValue);
+                }
+
+            }
+            return result;
+        }
+
+        static public T marshalFrom<T>(string stringRepresentation) where T: class
+        {
+            ListBlock block = explodeNested(stringRepresentation);
+            return marshalFrom<T>(block);
+        }
     }
 }

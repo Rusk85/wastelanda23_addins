@@ -6,14 +6,25 @@ using System.Threading.Tasks;
 
 namespace WastelandA23.Marshalling.Loadout
 {
-    class Player : AbstractMarshalling
+    public class Player : AbstractMarshalling
     {
+        public class Request
+        {
+            public string Command { get; set; }
+            public string PlayerUID { get; set; }
+        }
 
-        public string PlayerUID { get; private set; }
+        [ParamNumber(0)]
+        public Request sqlRequest { get; private set; }
+
+        [ParamNumber(1)]
         public Loadout loadout { get; private set; }
         public CurrentWeapon currentWeapon { get; private set; }
         public CurrentMode currentMode { get; private set; }
+        
+        public Player() { }
 
+        /*
         Player(string Command,
                string PlayerUID,
                Loadout loadout,
@@ -25,8 +36,6 @@ namespace WastelandA23.Marshalling.Loadout
             this.currentWeapon = currentWeapon;
             this.currentMode = currentMode;
         }
-
-
-
+        */
     }
 }

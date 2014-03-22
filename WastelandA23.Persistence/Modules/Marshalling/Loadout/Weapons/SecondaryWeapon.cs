@@ -12,6 +12,8 @@ namespace WastelandA23.Marshalling.Loadout
         public override List<LoadedMagazines> loadedMagazines { get; set; }
         public List<SecondaryWeaponItems> secondaryWeaponItems { get; set; }
 
+        public SecondaryWeapon() { }
+
         public SecondaryWeapon(List<SecondaryWeaponItems> secondaryWeaponItems,
                                List<LoadedMagazines> loadedMagazines)
         {

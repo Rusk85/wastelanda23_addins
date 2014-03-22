@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 
 namespace WastelandA23.Marshalling.Loadout
 {
-    class Uniform
+    public class Uniform
     {
 
         public UniformItems uniformItems { get; private set; }
+
+        public Uniform() { }
 
         public Uniform(UniformItems uniformItems)
         {
