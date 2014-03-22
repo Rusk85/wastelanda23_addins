@@ -47,9 +47,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\WastelandA23.Persistence\WastelandA23.Persistence.csproj">
       <Project>{843a198f-c72c-42e3-8693-dc6160359942}</Project>
       <Name>WastelandA23.Persistence</Name>

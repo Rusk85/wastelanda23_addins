@@ -3,6 +3,7 @@ using MySql.Data.MySqlClient;
 using WastelandA23.Database;
 using System;
 using System.IO;
+using System.Reflection;
 
 namespace WastelandA23.Persistence
 {
@@ -96,8 +97,10 @@ namespace WastelandA23.Persistence
 
         public void log(string msg)
         {
-            string path = @"D:\Program Files (x86)\Steam\SteamApps\common\Arma 3\logs" + this.GetType().Assembly.ToString() + ".txt";
-            var w = File.AppendText(path);
+            string ext = ".log";
+            var path = Path.Combine(new DirectoryInfo(Assembly.GetExecutingAssembly().Location).Parent.FullName);
+            var w = File.AppendText(new FileInfo(
+                Path.Combine(path, MethodBase.GetCurrentMethod().DeclaringType.Name + ext)).FullName);
             w.WriteLine(DateTime.Now + ": " + msg);
             w.Flush();
             w.Close();
