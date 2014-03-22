@@ -11,16 +11,26 @@ namespace WastelandA23.Marshalling
     public sealed class ParamNumberAttribute : Attribute
     {
         public int parameterIndex { get; set;  }
-        public Func<string, Object> converterFunc { get; set; }
+        public Func<string, Object> converterFuncIn { get; set; }
+        public Func<Object, string> converterFuncOut { get; set; }
 
         public ParamNumberAttribute(int index)
         {
             parameterIndex = index;
         }
 
-        public ParamNumberAttribute(int index, Func<string, Object> converter) : this(index)
+        public ParamNumberAttribute(int index,
+                                    Func<string, Object> converterIn)
+            : this(index)
         {
-            converterFunc = converter;
+            converterFuncIn = converterIn;
+        }
+
+        public ParamNumberAttribute(int index, 
+                                    Func<string, Object> converterIn,
+                                    Func<Object, string> converterOut)  : this(index, converterIn)
+        {
+            converterFuncOut = converterOut;
         }
     }
 }
