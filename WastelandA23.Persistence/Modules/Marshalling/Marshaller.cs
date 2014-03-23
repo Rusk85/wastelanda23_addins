@@ -416,7 +416,7 @@ namespace WastelandA23.Marshalling
 
         static public IDictionary<int, Tuple<MemberInfo, Func<string, Object>, Func<Object, string>>> createParamNumberDictionary(Type type, int indexOffset = 0)
         {
-            Func<MemberInfo, bool> hasParamAttribute = delegate(MemberInfo m) { return m.GetCustomAttribute(typeof(ParamNumberAttribute)) != null; };
+            Func<MemberInfo, bool> hasParamAttribute = ((m) => m.GetCustomAttribute(typeof(ParamNumberAttribute)) != null);
             MemberFilter isNonAbstract = delegate(MemberInfo m, object filter)
             {
                 if (m is PropertyInfo)
@@ -483,7 +483,8 @@ namespace WastelandA23.Marshalling
 
         static public T unmarshalFrom<T>(ListBlock from) where T: class
         {
-            T result = (T)Activator.CreateInstance(typeof(T)); 
+            T result = (T)Activator.CreateInstance(typeof(T));
+
             if (from == null || from.isEmpty())
             {
                 return result;
