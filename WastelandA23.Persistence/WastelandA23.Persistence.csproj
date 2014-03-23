@@ -49,6 +49,8 @@
     <Compile Include="Modules\Marshalling\Loadout\Containers\AbstractContainer.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Containers\AbstractItem.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Containers\BackpackItem.cs" />
+    <Compile Include="Modules\Marshalling\Loadout\State\CurrentLoadedMagazines.cs" />
+    <Compile Include="Modules\Marshalling\Loadout\Weapons\GenericWeapon.cs" />
     <Compile Include="Modules\Marshalling\ParamNumberAttribute.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Items\AssignedItems.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Containers\Backpack.cs" />

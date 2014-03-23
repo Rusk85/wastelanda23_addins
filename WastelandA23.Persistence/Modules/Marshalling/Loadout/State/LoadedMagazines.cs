@@ -9,14 +9,16 @@ namespace WastelandA23.Marshalling.Loadout
     public class LoadedMagazines
     {
 
-        public string ClassName { get; private set; }
-        public int Bullets { get; private set; }
+        public string ClassName { get; set; }
+        public string Bullets { get; set; }
 
-        public LoadedMagazines(string ClassName, int Bullets)
+        public LoadedMagazines(string ClassName, string Bullets)
         {
             this.ClassName = ClassName;
             this.Bullets = Bullets;
         }
+
+        public LoadedMagazines() { }
 
 
     }

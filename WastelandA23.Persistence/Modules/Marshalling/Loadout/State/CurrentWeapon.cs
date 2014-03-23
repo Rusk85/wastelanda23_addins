@@ -8,12 +8,10 @@ namespace WastelandA23.Marshalling.Loadout
 {
     public class CurrentWeapon
     {
-        public AbstractWeapon currentWeapon { get; private set; }
+        public string ClassName { get; set; }
+        public CurrentMode currentMode { get; set; }
 
-        public CurrentWeapon(AbstractWeapon currentWeapon)
-        {
-            this.currentWeapon = currentWeapon;
-        }
 
+        public CurrentWeapon() { }
     }
 }
