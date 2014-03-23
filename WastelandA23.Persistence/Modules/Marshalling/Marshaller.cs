@@ -372,20 +372,64 @@ namespace WastelandA23.Marshalling
                     {
                         result.addElement(explodeNested(sub));
                     }
+                    else
+                    {
+                        result.addElement(new ListBlock(sub));
+                    }
                     start = i + 1;
                 }
             }
             return result;
         }
 
-        static public IDictionary<int, Tuple<MemberInfo, Func<string, Object>, Func<Object, string>>> createParamNumberDictionary(Type type)
+        static private object dynamicCall(String name, Type genericArg, object[] parameters)
+        {
+            var dynamicMethod = typeof(Marshaller).GetMethod(name, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public).MakeGenericMethod(genericArg);
+            return dynamicMethod.Invoke(null, parameters);
+        }
+
+        static private IDictionary<int, Tuple<MemberInfo, Func<string, Object>, Func<Object, string>>> createParamNumberDictionaryWithInheritance(Type type, int paramNumberOffset)
+        {
+            Type baseType = type.BaseType;
+
+            if (type == null || type == typeof(Object))
+            {
+                return new Dictionary<int, Tuple<MemberInfo, Func<string, Object>, Func<Object, string>>>();
+            }
+
+            if (baseType == typeof(Object)) {
+                return createParamNumberDictionary(type, paramNumberOffset);
+            }
+            else
+            {
+                var dictBase = createParamNumberDictionaryWithInheritance(baseType, paramNumberOffset);
+                var dictThis = createParamNumberDictionary(type, paramNumberOffset + dictBase.Count);
+                return dictBase.Union(dictThis).ToDictionary (k => k.Key, v => v.Value);
+            }
+        }
+
+        static public IDictionary<int, Tuple<MemberInfo, Func<string, Object>, Func<Object, string>>> createParamNumberDictionaryWithInheritance(Type type)
+        {
+            return createParamNumberDictionaryWithInheritance(type, 0);
+        }
+
+        static public IDictionary<int, Tuple<MemberInfo, Func<string, Object>, Func<Object, string>>> createParamNumberDictionary(Type type, int indexOffset = 0)
         {
             Func<MemberInfo, bool> hasParamAttribute = delegate(MemberInfo m) { return m.GetCustomAttribute(typeof(ParamNumberAttribute)) != null; };
+            MemberFilter isNonAbstract = delegate(MemberInfo m, object filter)
+            {
+                if (m is PropertyInfo)
+                {
+                    return !((PropertyInfo)m).GetMethod.IsAbstract;
+                }
+                return true;
+            };
 
             var fields = type.FindMembers(MemberTypes.Property | MemberTypes.Field,
                                           BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly,
-                                          (a, b) => true,
+                                          isNonAbstract,
                                           null);
+
             var filteredFields = fields.Where(hasParamAttribute).ToArray();
             IEnumerable<Tuple<MemberInfo, Func<string, Object>, Func<Object, string>, int>> indexMapping;
 
@@ -394,17 +438,16 @@ namespace WastelandA23.Marshalling
             if (filteredFields.Length == 0)
             {
                 filteredFields = fields;
-                indexMapping = filteredFields.Select((m, i) => Tuple.Create(m, null as Func<string, Object>, null as Func<Object, string>, i));
+                indexMapping = filteredFields.Select((m, i) => Tuple.Create(m, null as Func<string, Object>, null as Func<Object, string>, i + indexOffset));
             }
             else
             {
                 indexMapping = filteredFields.Select(delegate(MemberInfo m) 
                 {
                     var param = (ParamNumberAttribute)m.GetCustomAttribute(typeof(ParamNumberAttribute));
-                    return Tuple.Create(m, param.converterFuncIn, param.converterFuncOut, param.parameterIndex);
+                    return Tuple.Create(m, param.converterFuncIn, param.converterFuncOut, param.parameterIndex + indexOffset);
                 });
             }
-
             return indexMapping.ToDictionary(t => t.Item4, t => Tuple.Create(t.Item1, t.Item2, t.Item3));
         }
 
@@ -417,14 +460,18 @@ namespace WastelandA23.Marshalling
             return from.value;
         }
 
-        static private IList<string> unmarshalFrom(IList<ListBlock> from)
+        static private T Cast<T>(Object o)
+        {
+            return (T)o;
+        }
+
+        static private IList<string> unmarshalFromStringListToList(IList<ListBlock> from)
         {
             return from.Select(i => i.value).ToList();
         }
 
-        static private IList<T> unmarshalFrom<T>(IList<ListBlock> from) where T : class
+        static private IList<T> unmarshalFromListToList<T>(IList<ListBlock> from) where T : class
         {
-            var list = (IList<T>)Activator.CreateInstance((typeof(List<>).MakeGenericType(typeof(T))));
             return (IList<T>)from.Select(i => unmarshalFrom<T>(i) as T).ToList();
         }
 
@@ -442,30 +489,43 @@ namespace WastelandA23.Marshalling
             }
 
             Type type = typeof(T);
+            bool outputIsList = typeof(IList).IsAssignableFrom(typeof(T));
             bool outputIsArray = type.IsArray;
+            bool outputIsCollection = outputIsList || outputIsArray;
             bool inputIsArray = from.isArray();
 
             //array ^= array
-            if (outputIsArray && inputIsArray)
+            //array ^= list
+            if (outputIsCollection && inputIsArray)
             {
-                Type elementType = type.GetElementType();
+                var elementType = type.GetElementType();
 
-                var list = (IList<Object>)Activator.CreateInstance((typeof(List<>).MakeGenericType(elementType))); 
-                list = list.Concat(unmarshalFrom(from.block)).ToList();
-                return (T)list;
+                if (type.IsGenericType)
+                {
+                    elementType = type.GetGenericArguments()[0];
+                }
+
+                if (elementType == typeof(string)) {
+                    return (T)unmarshalFromStringListToList(from.block);
+                }
+                else
+                {
+                    var resultList = dynamicCall("unmarshalFromListToList", elementType, new object[] { from.block });
+                    return (T)resultList;
+                }
             }
             //object ^= array
-            else if (!outputIsArray && inputIsArray)
+            else if (!outputIsCollection && inputIsArray)
             {
                 return marshalObjectFrom<T>(from.block);
             }
             //object (one member) ^= scalar
-            else if (!outputIsArray && !inputIsArray)
+            else if (!outputIsCollection && !inputIsArray)
             {
                 return marshalObjectFrom<T>(new ListBlock[] { from });
             }
             // array ^= scalar -> invalid
-            else if (outputIsArray && !inputIsArray)
+            else if (outputIsCollection && !inputIsArray)
             {
                 throw new ArgumentException("Failed to marshal, trying to combine array with scalar");
             }
@@ -474,15 +534,14 @@ namespace WastelandA23.Marshalling
 
         static private T marshalObjectFrom<T>(IList<ListBlock> from) where T : class
         {
-            T result = (T)Activator.CreateInstance(typeof(T));
-
-            if (from.Count == 0) { return result; }
-
-            var dict = createParamNumberDictionary(typeof(T));
+            var dict = createParamNumberDictionaryWithInheritance(typeof(T));
             if (dict.Count != from.Count)
             {
-                throw new ArgumentException("Failed to marshal, (case array -> object), unequal length", typeof(T).Name);
+                throw new ArgumentException("Failed to marshal, (case array -> object), unequal length, trying to consume " + dict.Count + " of " + from.Count, typeof(T).Name);
             }
+
+            T result = (T)Activator.CreateInstance(typeof(T));
+            if (from.Count == 0) { return result; }
 
             foreach (var pair in dict)
             {
@@ -508,18 +567,25 @@ namespace WastelandA23.Marshalling
                     type = property.PropertyType;
                 }
 
+                Object newValue;
+
                 //direct assignment
                 if (item.isValue())
                 {
-                    var newValue = (converter == null) ? (item.value) : (converter(item.value));
-                    setFunc(result, newValue);
+                    newValue = (converter == null) ? (item.value) : (converter(item.value));
                 }
                 else
                 {
-                    var fullTypeName = type.Name;
-                    var dynamicMethod = typeof(Marshaller).GetMethod("marshalFromBase", BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(type);
-                    var newValue = dynamicMethod.Invoke(null, new object[] { item });
+                    newValue = dynamicCall("marshalFromBase", type, new object[] { item });
+                }
+
+                try
+                {
                     setFunc(result, newValue);
+                }
+                catch (Exception e)
+                {
+                    throw new ArgumentException("Failed to marshal", typeof(T).Name, e);
                 }
 
             }

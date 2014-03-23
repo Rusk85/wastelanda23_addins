@@ -9,8 +9,10 @@ namespace WastelandA23.Marshalling.Loadout
     public class Loadout
     {
 
-        public AssignedItems assigendItems { get; private set; }
+        //public AssignedItems assigendItems { get; private set; }
+        public List<string> assigendItems { get; private set; }
         public PrimaryWeapon primaryWeapon { get; private set; }
+        public HandgunWeapon handgunWeapon { get; private set; }
         public SecondaryWeapon secondaryWeapon { get; private set; }
         public Uniform uniform { get; private set; }
         public Vest vest { get; private set; }
@@ -18,6 +20,7 @@ namespace WastelandA23.Marshalling.Loadout
 
         public Loadout() { }
 
+        /*
         Loadout(AssignedItems assigendItems,
                 PrimaryWeapon primaryWeapon,
                 SecondaryWeapon secondaryWeapon,
@@ -32,6 +35,7 @@ namespace WastelandA23.Marshalling.Loadout
             this.vest = vest;
             this.backpack = backpack;
         }
+         */
 
     }
 }

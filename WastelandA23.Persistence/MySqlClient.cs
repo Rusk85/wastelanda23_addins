@@ -41,7 +41,6 @@ namespace WastelandA23.Persistence
 
         private string proccessSQFCall(string raw_data)
         {
-            
             string[] data = rQ(raw_data).Split(new char[]{','}, 3);
             log(tS(data));
             var command = data[0];

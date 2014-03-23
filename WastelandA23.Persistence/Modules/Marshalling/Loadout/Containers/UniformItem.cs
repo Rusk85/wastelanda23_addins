@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace WastelandA23.Marshalling.Loadout
 {
-    public class VestItems
+    public class UniformItem : AbstractItem
     {
+        
     }
 }

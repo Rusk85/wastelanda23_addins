@@ -46,6 +46,9 @@
     <Compile Include="Config\Database\DBENUMS.cs" />
     <Compile Include="ConsumeFlattened.cs" />
     <Compile Include="Modules\Marshalling\AbstractMarshalling.cs" />
+    <Compile Include="Modules\Marshalling\Loadout\Containers\AbstractContainer.cs" />
+    <Compile Include="Modules\Marshalling\Loadout\Containers\AbstractItem.cs" />
+    <Compile Include="Modules\Marshalling\Loadout\Containers\BackpackItem.cs" />
     <Compile Include="Modules\Marshalling\ParamNumberAttribute.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Items\AssignedItems.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Containers\Backpack.cs" />
@@ -62,9 +65,9 @@
     <Compile Include="Modules\Marshalling\Loadout\Weapons\SecondaryWeapon.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Weapons\SecondaryWeaponItems.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Containers\Uniform.cs" />
-    <Compile Include="Modules\Marshalling\Loadout\Containers\UniformItems.cs" />
+    <Compile Include="Modules\Marshalling\Loadout\Containers\UniformItem.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Containers\Vest.cs" />
-    <Compile Include="Modules\Marshalling\Loadout\Containers\VestItems.cs" />
+    <Compile Include="Modules\Marshalling\Loadout\Containers\VestItem.cs" />
     <Compile Include="Modules\Marshalling\Marshaller.cs" />
     <Compile Include="Modules\Marshalling\Player.cs" />
     <Compile Include="Modules\Marshalling\Structs\MarshallingStructs.cs" />

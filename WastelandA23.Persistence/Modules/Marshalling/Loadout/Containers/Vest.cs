@@ -6,17 +6,11 @@ using System.Threading.Tasks;
 
 namespace WastelandA23.Marshalling.Loadout
 {
-    public class Vest
+    public class Vest : AbstractContainer
     {
-
-        public VestItems vestItems { get; private set; }
+        //public VestItem vestItems { get; private set; }
+        public List<VestItem> vestItems { get; private set; }
 
         public Vest() { }
-
-        public Vest(VestItems vestItems)
-        {
-            this.vestItems = vestItems;
-        }
-
     }
 }

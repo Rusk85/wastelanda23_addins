@@ -31,17 +31,19 @@ namespace MarshalTest
             Console.WriteLine(type.Name);
         }
 
-        static T testM<T>(IList<Marshaller.ListBlock> a) where T: class
+        /*
+        static IList<T> testM<T>(IList<Marshaller.ListBlock> a) where T: class
         {
             Console.WriteLine("list bla func");
-            return (T)Activator.CreateInstance(typeof(T));
+            return (IList<T>)Activator.CreateInstance(typeof(IList<T>));
         }
 
-        static T testM<T>(Marshaller.ListBlock a) where T: class
+        static T testM<T>(IList<Marshaller.ListBlock> a) where T: class
         {
             Console.WriteLine("scalar bla func");
             return (T)Activator.CreateInstance(typeof(T));
         }
+        */
 
         static void Main(string[] args)
          {
@@ -49,11 +51,10 @@ namespace MarshalTest
             Player player = new Player();
             //Marshaller.ListBlock block = Marshaller.explodeNested(test);
             //obj = Marshaller.marshalFrom(obj, "[[1,2]]");
-            player = Marshaller.unmarshalFrom<Player>(test);
 
-            Console.WriteLine("v1: " + obj.v1);
-            Console.WriteLine("v2: " + obj.v2);
-                      
+            player = Marshaller.unmarshalFrom<Player>(test);
+            var dict = Marshaller.createParamNumberDictionaryWithInheritance(typeof(PrimaryWeapon));
+
             Console.ReadLine();
             
             /* 

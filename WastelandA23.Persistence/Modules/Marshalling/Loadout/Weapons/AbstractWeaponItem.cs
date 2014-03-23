@@ -8,5 +8,6 @@ namespace WastelandA23.Marshalling.Loadout
 {
     public abstract class AbstractWeaponItem
     {
+        public string className { get; set; }
     }
 }

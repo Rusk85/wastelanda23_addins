@@ -8,9 +8,11 @@ namespace WastelandA23.Marshalling.Loadout
 {
     public class HandgunWeapon : AbstractWeapon
     {
-
+        [ParamNumber(0)]
         public List<HandgunItems> handgunItems{ get; set; }
         public override List<LoadedMagazines> loadedMagazines { get; set; }
+
+        public HandgunWeapon() { }
 
         public HandgunWeapon(List<HandgunItems> handgunItem, List<LoadedMagazines> loadedMagazines)
         {
