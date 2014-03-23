@@ -397,7 +397,8 @@ namespace WastelandA23.Marshalling
                 return new Dictionary<int, Tuple<MemberInfo, Func<string, Object>, Func<Object, string>>>();
             }
 
-            if (baseType == typeof(Object)) {
+            if (baseType == typeof(Object)) 
+            {
                 return createParamNumberDictionary(type, paramNumberOffset);
             }
             else
@@ -475,7 +476,7 @@ namespace WastelandA23.Marshalling
             return (IList<T>)from.Select(i => unmarshalFrom<T>(i) as T).ToList();
         }
 
-        static private T marshalFromBase<T>(ListBlock from) where T : class
+        static private T unmarshalFromBase<T>(ListBlock from) where T : class
         {
             return unmarshalFrom<T>(from);
         }
@@ -498,7 +499,7 @@ namespace WastelandA23.Marshalling
             //array ^= list
             if (outputIsCollection && inputIsArray)
             {
-                var elementType = type.GetElementType();
+                Type elementType = null;
 
                 if (type.IsGenericType)
                 {
@@ -517,12 +518,12 @@ namespace WastelandA23.Marshalling
             //object ^= array
             else if (!outputIsCollection && inputIsArray)
             {
-                return marshalObjectFrom<T>(from.block);
+                return unmarshalObjectFrom<T>(from.block);
             }
             //object (one member) ^= scalar
             else if (!outputIsCollection && !inputIsArray)
             {
-                return marshalObjectFrom<T>(new ListBlock[] { from });
+                return unmarshalObjectFrom<T>(new ListBlock[] { from });
             }
             // array ^= scalar -> invalid
             else if (outputIsCollection && !inputIsArray)
@@ -532,7 +533,7 @@ namespace WastelandA23.Marshalling
             return result;
         }
 
-        static private T marshalObjectFrom<T>(IList<ListBlock> from) where T : class
+        static private T unmarshalObjectFrom<T>(IList<ListBlock> from) where T : class
         {
             var dict = createParamNumberDictionaryWithInheritance(typeof(T));
             if (dict.Count != from.Count)
@@ -576,7 +577,7 @@ namespace WastelandA23.Marshalling
                 }
                 else
                 {
-                    newValue = dynamicCall("marshalFromBase", type, new object[] { item });
+                    newValue = dynamicCall("unmarshalFromBase", type, new object[] { item });
                 }
 
                 try
