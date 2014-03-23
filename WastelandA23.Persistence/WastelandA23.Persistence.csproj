@@ -45,7 +45,6 @@
     <Compile Include="Config\Database\DBCONFIG.cs" />
     <Compile Include="Config\Database\DBENUMS.cs" />
     <Compile Include="ConsumeFlattened.cs" />
-    <Compile Include="Modules\Loadout\SimpleLoadout.cs" />
     <Compile Include="Modules\Marshalling\AbstractMarshalling.cs" />
     <Compile Include="Modules\Marshalling\ParamNumberAttribute.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Items\AssignedItems.cs" />
