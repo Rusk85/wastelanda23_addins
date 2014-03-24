@@ -18,9 +18,10 @@ namespace WastelandA23.Marshalling.Loadout
         public Request sqlRequest { get; private set; }
 
         [ParamNumber(1)]
-        public Loadout loadout { get; private set; }
         public CurrentWeapon currentWeapon { get; private set; }
-        public CurrentMode currentMode { get; private set; }
+        
+        [ParamNumber(2)]
+        public Loadout loadout { get; private set; }
         
         public Player() { }
 

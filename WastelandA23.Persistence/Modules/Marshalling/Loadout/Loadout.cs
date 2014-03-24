@@ -17,8 +17,6 @@ namespace WastelandA23.Marshalling.Loadout
         public Uniform uniform { get; private set; }
         public Vest vest { get; private set; }
         public Backpack backpack { get; private set; }
-        public CurrentLoadedMagazines currentLoadedMagazines { get; private set; }
-        public CurrentWeapon currentWeapon { get; private set; }
 
         public Loadout() { }
 

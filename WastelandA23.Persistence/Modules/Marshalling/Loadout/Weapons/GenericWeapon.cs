@@ -11,7 +11,7 @@ namespace WastelandA23.Marshalling.Loadout
     /// </summary>
     public class GenericWeapon : AbstractWeapon
     {
-        public override LoadedMagazines loadedMagazines { get; set; }
+        public override LoadedMagazine loadedMagazines { get; set; }
 
         public GenericWeapon() { }
     }

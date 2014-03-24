@@ -9,6 +9,6 @@ namespace WastelandA23.Marshalling.Loadout
     public abstract class AbstractWeapon
     {
         public string ClassName { get; private set; }
-        public abstract LoadedMagazines loadedMagazines { get; set; }
+        public abstract LoadedMagazine loadedMagazines { get; set; }
     }
 }
