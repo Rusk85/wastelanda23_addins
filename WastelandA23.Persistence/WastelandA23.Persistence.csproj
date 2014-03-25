@@ -60,7 +60,7 @@
     <Compile Include="Modules\Marshalling\Loadout\Weapons\AbstractWeaponItem.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Weapons\HandgunItems.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Weapons\HandgunWeapon.cs" />
-    <Compile Include="Modules\Marshalling\Loadout\State\LoadedMagazine.cs" />
+    <Compile Include="Modules\Marshalling\Loadout\State\Magazine.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Weapons\PrimaryWeapon.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Weapons\PrimaryWeaponItems.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Weapons\SecondaryWeapon.cs" />

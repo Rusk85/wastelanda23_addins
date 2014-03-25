@@ -12,11 +12,11 @@ namespace WastelandA23.Marshalling.Loadout
         public List<HandgunItems> handgunItems{ get; set; }
 
         [ParamNumber(1)]
-        public override LoadedMagazine loadedMagazines { get; set; }
+        public override Magazine loadedMagazines { get; set; }
 
         public HandgunWeapon() { }
 
-        public HandgunWeapon(List<HandgunItems> handgunItem, LoadedMagazine loadedMagazines)
+        public HandgunWeapon(List<HandgunItems> handgunItem, Magazine loadedMagazines)
         {
             this.handgunItems= handgunItem;
             this.loadedMagazines = loadedMagazines;

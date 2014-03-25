@@ -6,19 +6,19 @@ using System.Threading.Tasks;
 
 namespace WastelandA23.Marshalling.Loadout
 {
-    public class LoadedMagazine
+    public class Magazine
     {
 
         public string ClassName { get; set; }
         public string Bullets { get; set; }
 
-        public LoadedMagazine(string ClassName, string Bullets)
+        public Magazine(string ClassName, string Bullets)
         {
             this.ClassName = ClassName;
             this.Bullets = Bullets;
         }
 
-        public LoadedMagazine() { }
+        public Magazine() { }
 
 
     }

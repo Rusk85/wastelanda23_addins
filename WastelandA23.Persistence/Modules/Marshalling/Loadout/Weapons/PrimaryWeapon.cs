@@ -11,12 +11,12 @@ namespace WastelandA23.Marshalling.Loadout
         [ParamNumber(0)]
         public List<PrimaryWeaponItems> primaryWeaponItems { get; set; }
         [ParamNumber(1)]
-        public override LoadedMagazine loadedMagazines { get; set; }
+        public override Magazine loadedMagazines { get; set; }
         
 
         public PrimaryWeapon() { }
 
-        public PrimaryWeapon(List<PrimaryWeaponItems> primaryWeaponItems,  LoadedMagazine loadedMagazines)
+        public PrimaryWeapon(List<PrimaryWeaponItems> primaryWeaponItems,  Magazine loadedMagazines)
         {
             this.primaryWeaponItems = primaryWeaponItems;
             this.loadedMagazines = loadedMagazines;
