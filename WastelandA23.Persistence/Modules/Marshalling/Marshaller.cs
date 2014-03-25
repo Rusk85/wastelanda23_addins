@@ -355,7 +355,6 @@ namespace WastelandA23.Marshalling
             {
                 var valueList = explodeIfNotEscaped(str, '\"', '\"', ',');
                 var list = valueList.Select(f => new ListBlock(f.Trim('\"'))).ToList();
-                if (list.Count > 0) { result.block = list; };
                 return result;
             }
 
@@ -501,17 +500,22 @@ namespace WastelandA23.Marshalling
 
         static public T unmarshalFrom<T>(ListBlock from) where T: class
         {
-            if (from == null || from.isEmpty())
-            {
-                return null;
-            }
-
             T result = (T)Activator.CreateInstance(typeof(T));
+            
             Type type = typeof(T);
             bool outputIsList = typeof(IList).IsAssignableFrom(typeof(T));
             bool outputIsArray = type.IsArray;
             bool outputIsCollection = outputIsList || outputIsArray;
             bool inputIsArray = from.isArray();
+
+            if (from == null || from.isEmpty())
+            {
+                if (outputIsCollection) 
+                { 
+                    return result;  
+                }
+                return null;
+            }
 
             //array ^= array
             //array ^= list
