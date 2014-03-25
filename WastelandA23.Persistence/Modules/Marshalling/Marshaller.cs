@@ -273,7 +273,7 @@ namespace WastelandA23.Marshalling
         {
             List<string> result = new List<string>();
 
-            if (String.IsNullOrEmpty(str))
+            if (isEmptySQFString(str))
             {
                 return result;
             }
@@ -302,7 +302,11 @@ namespace WastelandA23.Marshalling
                         end--;
                     }
                     string sub = str.Substring(start, end - start + 1);
-                    result.Add(sub);
+
+                    if (!isEmptySQFString(sub))
+                    {
+                        result.Add(sub);
+                    }
                     start = i + 1;
                 }
             }
@@ -323,13 +327,25 @@ namespace WastelandA23.Marshalling
             return str;
         }
 
+        static public bool isEmptySQFString(string str)
+        {
+            if (String.IsNullOrEmpty(str))
+            {
+                return true;
+            }
+            if (str.StartsWith("\"") && str.EndsWith("\"") && str.Length == 2)
+            {
+                return true;
+            }
+            return false;
+        }
+
         static public ListBlock explodeNested(string str)
         {
             ListBlock result = new ListBlock();
 
-            if (String.IsNullOrEmpty(str))
+            if (isEmptySQFString(str))
             {
-                result.value = "";
                 return result;
             }
 
@@ -338,7 +354,8 @@ namespace WastelandA23.Marshalling
             if (!str.StartsWith("[") && !str.EndsWith("]"))
             {
                 var valueList = explodeIfNotEscaped(str, '\"', '\"', ',');
-                result.block = valueList.Select(f => new ListBlock(f)).ToList();
+                var list = valueList.Select(f => new ListBlock(f.Trim('\"'))).ToList();
+                if (list.Count > 0) { result.block = list; };
                 return result;
             }
 
@@ -372,8 +389,9 @@ namespace WastelandA23.Marshalling
                     {
                         result.addElement(explodeNested(sub));
                     }
-                    else
+                    else if (!isEmptySQFString(str))
                     {
+                        sub = sub.Trim('\"');
                         result.addElement(new ListBlock(sub));
                     }
                     start = i + 1;
@@ -483,13 +501,12 @@ namespace WastelandA23.Marshalling
 
         static public T unmarshalFrom<T>(ListBlock from) where T: class
         {
-            T result = (T)Activator.CreateInstance(typeof(T));
-
             if (from == null || from.isEmpty())
             {
-                return result;
+                return null;
             }
 
+            T result = (T)Activator.CreateInstance(typeof(T));
             Type type = typeof(T);
             bool outputIsList = typeof(IList).IsAssignableFrom(typeof(T));
             bool outputIsArray = type.IsArray;
