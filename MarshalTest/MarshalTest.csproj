@@ -47,6 +47,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Arma2Net\Arma2Net.vcxproj">
+      <Project>{8d2448b2-b12a-4c5d-b2ee-f6717a6918c9}</Project>
+      <Name>Arma2Net</Name>
+    </ProjectReference>
     <ProjectReference Include="..\WastelandA23.Persistence\WastelandA23.Persistence.csproj">
       <Project>{843a198f-c72c-42e3-8693-dc6160359942}</Project>
       <Name>WastelandA23.Persistence</Name>

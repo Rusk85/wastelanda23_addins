@@ -8,7 +8,7 @@ namespace WastelandA23.Marshalling.Loadout
 {
     public class Uniform : AbstractContainer
     {
-        public List<UniformItem> uniformItems { get; private set; }
+        public List<Item> uniformItems { get; private set; }
 
         public Uniform() { }
     }

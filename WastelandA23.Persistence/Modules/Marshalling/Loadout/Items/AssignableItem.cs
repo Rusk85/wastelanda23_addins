@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace WastelandA23.Marshalling.Loadout
 {
-    public class AssignedItems
+    /// <summary>
+    /// Map, Compass, etc
+    /// </summary>
+    public class AssignableItem : Item
     {
-        public string name;
     }
 }

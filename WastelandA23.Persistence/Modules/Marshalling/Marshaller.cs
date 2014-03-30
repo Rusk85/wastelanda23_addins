@@ -6,6 +6,9 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Collections;
+using WastelandA23.Marshalling.Loadout;
+using System.IO;
+using Arma2Net;
 
 namespace WastelandA23.Marshalling
 {
@@ -483,6 +486,48 @@ namespace WastelandA23.Marshalling
             return (T)o;
         }
 
+        public static List<Type> findAllDerivedTypes<T>()
+        {
+            return findAllDerivedTypes<T>(Assembly.GetAssembly(typeof(T)));
+        }
+
+        public static List<Type> findAllDerivedTypes<T>(Assembly assembly)
+        {
+            var derivedType = typeof(T); 
+            try
+            {
+                //The code that causes the error goes here.
+                return assembly
+                    .GetTypes()
+                    .Where(t =>
+                        t != derivedType &&
+                        derivedType.IsAssignableFrom(t)
+                        ).ToList();
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach (Exception exSub in ex.LoaderExceptions)
+                {
+                    sb.AppendLine(exSub.Message);
+                    if (exSub is FileNotFoundException)
+                    {
+                        FileNotFoundException exFileNotFound = exSub as FileNotFoundException;
+                        if (!string.IsNullOrEmpty(exFileNotFound.FusionLog))
+                        {
+                            sb.AppendLine("Fusion Log:");
+                            sb.AppendLine(exFileNotFound.FusionLog);
+                        }
+                    }
+                    sb.AppendLine();
+                }
+                string errorMessage = sb.ToString();
+                //Display or log the error based on your application.
+            }
+            return null;
+
+        } 
+
         static private IList<string> unmarshalFromStringListToList(IList<ListBlock> from)
         {
             return from.Select(i => i.value).ToList();
@@ -501,7 +546,6 @@ namespace WastelandA23.Marshalling
         static public T unmarshalFrom<T>(ListBlock from) where T: class
         {
             T result = (T)Activator.CreateInstance(typeof(T));
-            
             Type type = typeof(T);
             bool outputIsList = typeof(IList).IsAssignableFrom(typeof(T));
             bool outputIsArray = type.IsArray;
@@ -540,6 +584,14 @@ namespace WastelandA23.Marshalling
             //object ^= array
             else if (!outputIsCollection && inputIsArray)
             {
+                if (typeof(T).GetCustomAttributes(typeof(ItemTypeAttribute)).ToArray().Length > 0)
+                {
+                    //special case solution
+                    //failure conditions:
+                    //w/o execption: item is not a magazine but has the same fields (type && amountof)
+                    //w/  execption: more blocks inside
+                    return (T)dynamicCall("unmarshalObjectFrom", typeof(Magazine), new object[] { from.block });
+                }
                 return unmarshalObjectFrom<T>(from.block);
             }
             //object (one member) ^= scalar

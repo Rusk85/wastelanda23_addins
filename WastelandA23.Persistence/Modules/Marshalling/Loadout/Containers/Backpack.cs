@@ -8,6 +8,6 @@ namespace WastelandA23.Marshalling.Loadout
 {
     public class Backpack : AbstractContainer
     {
-        public List<BackpackItem> backPackItems { get; set; }
+        public List<Item> backPackItems { get; set; }
     }
 }

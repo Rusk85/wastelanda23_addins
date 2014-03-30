@@ -18,7 +18,7 @@ namespace WastelandA23.Marshalling
         {
             parameterIndex = index;
         }
-
+         
         public ParamNumberAttribute(int index,
                                     Func<string, Object> converterIn)
             : this(index)
