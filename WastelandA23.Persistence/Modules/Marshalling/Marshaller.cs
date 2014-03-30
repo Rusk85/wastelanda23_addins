@@ -358,6 +358,7 @@ namespace WastelandA23.Marshalling
             {
                 var valueList = explodeIfNotEscaped(str, '\"', '\"', ',');
                 var list = valueList.Select(f => new ListBlock(f.Trim('\"'))).ToList();
+                if (list.Count > 0) { result.block = list; };
                 return result;
             }
 
