@@ -11,8 +11,7 @@ namespace WastelandA23.Marshalling.Loadout
         [ParamNumber(0)]
         public string Bullets { get; set; }
 
-        public Magazine() { }
-
+        public Magazine() : base() { } 
 
     }
 }

@@ -6,9 +6,12 @@ using System.Threading.Tasks;
 
 namespace WastelandA23.Marshalling.Loadout
 {
-    [ItemType]
+    [DerivedType]
     public class Item
     {
         public string ClassName { get; set; }
+
+        public Item() { }
+
     }
 }

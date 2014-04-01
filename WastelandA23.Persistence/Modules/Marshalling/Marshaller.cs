@@ -585,13 +585,19 @@ namespace WastelandA23.Marshalling
             //object ^= array
             else if (!outputIsCollection && inputIsArray)
             {
-                if (typeof(T).GetCustomAttributes(typeof(ItemTypeAttribute)).ToArray().Length > 0)
+                if (
+                        //Candidate<Derived:Item> vetting
+                        typeof(T).GetCustomAttributes(typeof(DerivedTypeAttribute)).ToArray().Length > 0
+                        && from.value == null 
+                        && from.block[0].value != null 
+                        && from.block[1].isArray()
+                    )
                 {
-                    //special case solution
-                    //failure conditions:
-                    //w/o execption: item is not a magazine but has the same fields (type && amountof)
-                    //w/  execption: more blocks inside
-                    return (T)dynamicCall("unmarshalObjectFrom", typeof(Magazine), new object[] { from.block });
+                    var matchedType = findAllDerivedTypes<T>().Where(t => t.Name == from.block[0].value).First();
+                    if (matchedType != null)
+                    {
+                        return (T)dynamicCall("unmarshalFromBase", matchedType, new object[] { from.block[1] });
+                    }
                 }
                 return unmarshalObjectFrom<T>(from.block);
             }
