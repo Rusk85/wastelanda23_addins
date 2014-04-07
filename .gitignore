@@ -85,3 +85,4 @@ _ReSharper.*
 Release/
 Debug/
 App.Config
+packages/
