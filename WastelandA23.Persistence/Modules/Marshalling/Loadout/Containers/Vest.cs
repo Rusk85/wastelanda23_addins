@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace WastelandA23.Marshalling.Loadout
 {
@@ -11,6 +7,8 @@ namespace WastelandA23.Marshalling.Loadout
         //public VestItem vestItems { get; private set; }
         public List<Item> vestItems { get; private set; }
 
-        public Vest() { }
+        public Vest()
+        {
+        }
     }
 }

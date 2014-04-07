@@ -1,6 +1,5 @@
 ﻿using Arma2Net;
 using MySql.Data.MySqlClient;
-using WastelandA23.Database;
 using System;
 using System.IO;
 using System.Reflection;
@@ -8,21 +7,19 @@ using System.Reflection;
 namespace WastelandA23.Persistence
 {
     [Addin("MySqlClient")]
-    class MySqlClient : Addin
+    internal class MySqlClient : Addin
     {
         private string conStr;
-        Func<string[], string> tS;
-        Func<string, string> rQ;
+        private Func<string[], string> tS;
+        private Func<string, string> rQ;
 
-        
-        public MySqlClient() 
+        public MySqlClient()
         {
             conStr = DBCONFIG.getConnectionString(DbSchema.SIMPLE);
             tS = toString;
             rQ = removeQuotes;
             InvocationMethod = new AsyncAddinInvocationMethod(this);
         }
-
 
         public override string Invoke(string args, int maxResultSize)
         {
@@ -33,15 +30,14 @@ namespace WastelandA23.Persistence
             }
             catch (Exception e)
             {
-                log(e.Message); 
+                log(e.Message);
             }
             return null;
         }
 
-
         private string proccessSQFCall(string raw_data)
         {
-            string[] data = rQ(raw_data).Split(new char[]{','}, 3);
+            string[] data = rQ(raw_data).Split(new char[] { ',' }, 3);
             log(tS(data));
             var command = data[0];
             log(command);
@@ -60,7 +56,6 @@ namespace WastelandA23.Persistence
             return null;
         }
 
-
         private void saveLoadout(string[] loadout_data)
         {
             Func<string, string> qP = quoteParam;
@@ -74,7 +69,6 @@ namespace WastelandA23.Persistence
             cmd.Connection.Open();
             cmd.ExecuteNonQuery();
             cmd.Connection.Close();
-
         }
 
         private string quoteParam(string param)
@@ -87,12 +81,10 @@ namespace WastelandA23.Persistence
             return str.Replace("\"", "");
         }
 
-
         public MySqlCommand getCommand(string conStr)
         {
             return new MySqlConnection(conStr).CreateCommand();
         }
-
 
         public void log(string msg)
         {

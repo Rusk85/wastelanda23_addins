@@ -33,6 +33,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\EntityFramework.6.1.0\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer">
+      <HintPath>..\packages\EntityFramework.6.1.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
@@ -51,10 +58,18 @@
       <Project>{8d2448b2-b12a-4c5d-b2ee-f6717a6918c9}</Project>
       <Name>Arma2Net</Name>
     </ProjectReference>
+    <ProjectReference Include="..\WastelandA23.Model\WastelandA23.Model.csproj">
+      <Project>{d6bb0561-8275-44f0-bb13-6d0d1ba32407}</Project>
+      <Name>WastelandA23.Model</Name>
+    </ProjectReference>
     <ProjectReference Include="..\WastelandA23.Persistence\WastelandA23.Persistence.csproj">
       <Project>{843a198f-c72c-42e3-8693-dc6160359942}</Project>
       <Name>WastelandA23.Persistence</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

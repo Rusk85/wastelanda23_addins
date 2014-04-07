@@ -1,247 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Reflection;
-using System.Threading.Tasks;
-using System.Diagnostics;
 using System.Collections;
-using WastelandA23.Marshalling.Loadout;
+using System.Collections.Generic;
 using System.IO;
-using Arma2Net;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 
 namespace WastelandA23.Marshalling
 {
     public class Marshaller
     {
-        private string SQFString;
-        private char[] str;
-        private Dictionary<int, List<Range>> LevelRange = new Dictionary<int, List<Range>>();
-        private Dictionary<int, List<Position>> LevelPosition = new Dictionary<int, List<Position>>();
-        private List<Element> Elements = new List<Element>();
-        private string debugStr = "[[\"SAVE_COMMAND\",\"765611979,64280320\"],[[\"ItemMap\",\"ItemCompass\",\"ItemWatch\",\"H_MilCap_mcamo\",\"G_Tactical_Black\"],\"\",[],\"Colt1911\",[\"\",\"\",\"\"],\"\",[],\"U_B_CombatUniform_mcam\",[\"7Rnd_45ACP_1911\"],\"V_BandollierB_rgr\",[],\"B_Carryall_cbr\",[],[[],[\"7Rnd_45ACP_1911\"],[],[\"7Rnd_45ACP_1911\",\"7Rnd_45ACP_1911\",\"7Rnd_45ACP_1911\",\"7Rnd_45ACP_1911\",\"7Rnd_45ACP_1911\"]],\"Colt1911\",\"Colt1911\"]]";
-        
-        public Marshaller(string SQFString) 
-        {
-            this.SQFString = SQFString;
-            str = SQFString.ToCharArray();
-            #if DEBUG
-            this.SQFString = debugStr;
-            str = this.SQFString.ToCharArray();
-            #endif
-        }
-
-
-        public void startWalking()
-        {
-            walk(0,str.Length, 0);
-            doRangeParsing();
-        }
-
-
-        private void walk(int curPos, int length, int level)
-        {
-            int balanced = 0;
-            int start = 0;
-            int end = 0;
-            level++;
-
-            for (int i = curPos; i < length; i++)
-            {
-
-                if (str[i] == '[')
-                {
-                    if (balanced++ == 0) { start = i; }
-                }
-                else if (str[i] == ']')
-                {
-                    if (--balanced == 0) { end = i; }
-                }
-
-                if (balanced == 0 && (str[i] == ']' || str[i] == '['))
-                {
-                    addLevelRange(level, start, end);
-                    walk(++start, end, level);
-                }
-            }
-        }
-
-
-        private void doRangeParsing()
-        {
-            foreach (var l in LevelRange.Values)
-            {
-                foreach (Range r in l){ parseRange(r); }
-            }
-        }
-
-
-        private void parseRange(Range range)
-        {
-            var s = SQFString.Substring(range.Start, range.Length).ToCharArray();
-            int balanced = 0;
-            bool foundBracket = false;
-            int start = 0;
-            int end = 0;
-
-            List<Range> nests = new List<Range>();
-
-            // remove brackets at the end and the beginning
-            if (s[0] == '[') s[0] = '#';
-            if (s[s.Length - 1] == ']') s[s.Length - 1] = '#';
-            s = new String(s).Replace("#", "").ToCharArray();
-            var pos = getLevelPosition(range.Level);
-
-            // lets find possible additional nested arrays in this particular array
-            for (int i = 0; i < s.Length; i++)
-            {
-                if (s[i] == '[')
-                {
-                    if (balanced++ == 0) { start = i; foundBracket = true; }
-                }
-                else if (s[i] == ']')
-                {
-                    if (--balanced == 0) { end = i; }
-                }
-                else
-                {
-                    continue; // nothing to see or do here
-                }
-
-                if (balanced == 0 && foundBracket)
-                {
-                    nests.Add(new Range() { Start = start, End = end, Length = end - start });
-                    foundBracket = false;
-                }
-            }
-
-            // mark nested arrays for deletion
-            foreach (Range r in nests)
-            {
-                for (int i = r.Start; i < r.End; i++)
-                {
-                    s[i] = '#';
-                }
-            }
-
-            // execute deletion
-            var prelim = new String(s).Replace("#", String.Empty);
-
-            var elemList = new List<Element>();
-            foreach (string eStr in split(prelim))
-            {
-                var r = "";
-                foreach (string rep in new String[] { "[", "]" })
-                {
-                    r = eStr.Replace(rep, String.Empty);
-                }
-                if (r != String.Empty) { elemList.Add(new Element() { ClassName = r, Level = range.Level, Position = pos.Value }); }
-            }
-
-            #if DEBUG
-            foreach (Element e in elemList)
-            {
-                Debug.WriteLine(String.Format("ClassName {0} | Level {1} | Position {2}", e.ClassName, e.Level, e.Position));
-            }
-            #endif
-            if (elemList.Count == 0) { return; }
-            Elements = Elements.Concat(elemList).ToList();
-        }
-
-
-        private string[] split(string Str)
-        {
-            bool balanced = true;
-            bool foundQM = false;
-            int start = 0;
-            int end = 0;
-            var cStr = Str.ToCharArray();
-
-            var ranges = new List<Range>();
-
-            for (int i = 0; i < cStr.Length; i++)
-            {
-                if (cStr[i] == '"' && balanced && !foundQM)
-                {
-                    balanced = false;
-                    foundQM = true;
-                    start = i;
-                }
-                else if (cStr[i] == '"' && !balanced)
-                {
-                    balanced = true;
-                    end = i;
-                }
-                else if (cStr[i] == '"' && balanced)
-                {
-                    balanced = false;
-                    start = i;
-                }
-
-                if (balanced && foundQM)
-                {
-                    ranges.Add(new Range() { Start = start, End = end, Length = end - start });
-                    foundQM = false;
-                }
-            }
-
-            var eList = new List<string>();
-            foreach (Range r in ranges)
-            {
-                eList.Add(Str.Substring(r.Start, r.Length).Replace("\"",""));
-            }
-            return eList.ToArray();
-        }
-
-
-        private void addLevelRange(int Level, int Start, int End)
-        {
-            End++;
-            #if DEBUG
-            Debug.WriteLine(String.Format("Start {0} | End {1} | Substring {2}", 
-                Start, End, SQFString.Substring(Start, End - Start)));
-            #endif
-            if (LevelRange.ContainsKey(Level))
-            {
-                LevelRange[Level].Add(new Range() {Level=Level, Start=Start, End=End, Length = End-Start });
-            }
-            else
-            {
-                var l = new List<Range>();
-                l.Add(new Range() { Level = Level, Start = Start, End = End, Length = End-Start });
-                LevelRange.Add(Level, l);
-            }
-        }
-
-
-        private Position getLevelPosition(int Level)
-        {
-            var p = new Position(Level);
-            if (LevelPosition.ContainsKey(Level))
-            {
-
-                if (LevelPosition[Level].Count == 0)
-                {
-                    p.Value = 0;
-                }
-                else
-                {
-                    var pos = LevelPosition[Level].Max(x => x.Value);
-                    p.Value = ++pos;
-                }
-                LevelPosition[Level].Add(p);
-            }
-            else
-            {
-                LevelPosition.Add(Level, new List<Position> { new Position(0) });
-                p.Value = 0;
-            }
-            return p;
-        }
-
         public class ListBlock
         {
-            public ListBlock() { }
+            public ListBlock()
+            {
+            }
+
             public ListBlock(string value)
             {
                 this.value = value;
@@ -252,7 +26,8 @@ namespace WastelandA23.Marshalling
                 this.block = block;
             }
 
-            public void addElement(ListBlock block) {
+            public void addElement(ListBlock block)
+            {
                 if (this.block == null)
                 {
                     this.block = new List<ListBlock>();
@@ -260,19 +35,28 @@ namespace WastelandA23.Marshalling
                 this.block.Add(block);
             }
 
-            public bool isEmpty() { return !isValue() && !isArray(); }
-            public bool isValue() { return value != null;  }
-            public bool isArray() { return block != null;  }
+            public bool isEmpty()
+            {
+                return !isValue() && !isArray();
+            }
+
+            public bool isValue()
+            {
+                return value != null;
+            }
+
+            public bool isArray()
+            {
+                return block != null;
+            }
 
             public string value = null;
             public List<ListBlock> block = null;
         }
 
-
-        
         //static string test = "[[SAVE_COMMAND,76561197964280320],[1.2, 3.4]]";
 
-        static List<string> explodeIfNotEscaped(string str, char blockStart, char blockEnd, char delimiter)
+        private static List<string> explodeIfNotEscaped(string str, char blockStart, char blockEnd, char delimiter)
         {
             List<string> result = new List<string>();
 
@@ -316,7 +100,7 @@ namespace WastelandA23.Marshalling
             return result;
         }
 
-        static string trimOnce(string str, string beginString, string endString)
+        private static string trimOnce(string str, string beginString, string endString)
         {
             if (String.IsNullOrEmpty(str))
             {
@@ -418,7 +202,7 @@ namespace WastelandA23.Marshalling
                 return new Dictionary<int, Tuple<MemberInfo, Func<string, Object>, Func<Object, string>>>();
             }
 
-            if (baseType == typeof(Object)) 
+            if (baseType == typeof(Object))
             {
                 return createParamNumberDictionary(type, paramNumberOffset);
             }
@@ -426,7 +210,7 @@ namespace WastelandA23.Marshalling
             {
                 var dictBase = createParamNumberDictionaryWithInheritance(baseType, paramNumberOffset);
                 var dictThis = createParamNumberDictionary(type, paramNumberOffset + dictBase.Count);
-                return dictBase.Union(dictThis).ToDictionary (k => k.Key, v => v.Value);
+                return dictBase.Union(dictThis).ToDictionary(k => k.Key, v => v.Value);
             }
         }
 
@@ -438,6 +222,7 @@ namespace WastelandA23.Marshalling
         static public IDictionary<int, Tuple<MemberInfo, Func<string, Object>, Func<Object, string>>> createParamNumberDictionary(Type type, int indexOffset = 0)
         {
             Func<MemberInfo, bool> hasParamAttribute = ((m) => m.GetCustomAttribute(typeof(ParamNumberAttribute)) != null);
+            Func<MemberInfo, bool> hasIgnoreMemberAttribute = ((m) => m.GetCustomAttribute(typeof(IgnoredMemberAttribute)) != null);
             MemberFilter isNonAbstract = delegate(MemberInfo m, object filter)
             {
                 if (m is PropertyInfo)
@@ -459,12 +244,12 @@ namespace WastelandA23.Marshalling
             //that all members in declaration order are meant
             if (filteredFields.Length == 0)
             {
-                filteredFields = fields;
+                filteredFields = fields.Where(m => hasIgnoreMemberAttribute(m) == false).ToArray();
                 indexMapping = filteredFields.Select((m, i) => Tuple.Create(m, null as Func<string, Object>, null as Func<Object, string>, i + indexOffset));
             }
             else
             {
-                indexMapping = filteredFields.Select(delegate(MemberInfo m) 
+                indexMapping = filteredFields.Select(delegate(MemberInfo m)
                 {
                     var param = (ParamNumberAttribute)m.GetCustomAttribute(typeof(ParamNumberAttribute));
                     return Tuple.Create(m, param.converterFuncIn, param.converterFuncOut, param.parameterIndex + indexOffset);
@@ -473,7 +258,7 @@ namespace WastelandA23.Marshalling
             return indexMapping.ToDictionary(t => t.Item4, t => Tuple.Create(t.Item1, t.Item2, t.Item3));
         }
 
-        static private string unmarshalFrom(ListBlock from) 
+        static private string unmarshalFrom(ListBlock from)
         {
             if (!from.isValue())
             {
@@ -492,9 +277,16 @@ namespace WastelandA23.Marshalling
             return findAllDerivedTypes<T>(Assembly.GetAssembly(typeof(T)));
         }
 
+        public static List<Type> findAllDerivedTypes(Type T)
+        {
+            MethodInfo method = typeof(Marshaller).GetMethod("findAllDerivedTypes", new Type[] { typeof(Assembly) });
+            MethodInfo generic = method.MakeGenericMethod(T);
+            return (List<Type>)generic.Invoke(null, new object[] { Assembly.GetAssembly(T) });
+        }
+
         public static List<Type> findAllDerivedTypes<T>(Assembly assembly)
         {
-            var derivedType = typeof(T); 
+            var derivedType = typeof(T);
             try
             {
                 //The code that causes the error goes here.
@@ -526,8 +318,7 @@ namespace WastelandA23.Marshalling
                 //Display or log the error based on your application.
             }
             return null;
-
-        } 
+        }
 
         static private IList<string> unmarshalFromStringListToList(IList<ListBlock> from)
         {
@@ -544,7 +335,7 @@ namespace WastelandA23.Marshalling
             return unmarshalFrom<T>(from);
         }
 
-        static public T unmarshalFrom<T>(ListBlock from) where T: class
+        static public T unmarshalFrom<T>(ListBlock from) where T : class
         {
             T result = (T)Activator.CreateInstance(typeof(T));
             Type type = typeof(T);
@@ -555,9 +346,9 @@ namespace WastelandA23.Marshalling
 
             if (from == null || from.isEmpty())
             {
-                if (outputIsCollection) 
-                { 
-                    return result;  
+                if (outputIsCollection)
+                {
+                    return result;
                 }
                 return null;
             }
@@ -573,7 +364,8 @@ namespace WastelandA23.Marshalling
                     elementType = type.GetGenericArguments()[0];
                 }
 
-                if (elementType == typeof(string)) {
+                if (elementType == typeof(string))
+                {
                     return (T)unmarshalFromStringListToList(from.block);
                 }
                 else
@@ -585,15 +377,26 @@ namespace WastelandA23.Marshalling
             //object ^= array
             else if (!outputIsCollection && inputIsArray)
             {
+                //"["Assign..", ["class.."]]"
+                //"["class"]
                 if (
-                        //Candidate<Derived:Item> vetting
-                        typeof(T).GetCustomAttributes(typeof(DerivedTypeAttribute)).ToArray().Length > 0
-                        && from.value == null 
-                        && from.block[0].value != null 
+                    //Candidate<Derived:Item> vetting
+                        from.block.Count == 2
+                        && from.block[0].isValue()
                         && from.block[1].isArray()
                     )
                 {
-                    var matchedType = findAllDerivedTypes<T>().Where(t => t.Name == from.block[0].value).First();
+                    Type matchedType = null;
+                    if (typeof(T).GetCustomAttribute(typeof(DerivedTypeAttribute)) != null)
+                    {
+                        matchedType = findAllDerivedTypes<T>().Where(t => t.Name == from.block[0].value).First();
+                    }
+
+                    if (typeof(T).BaseType.GetCustomAttribute(typeof(DerivedTypeAttribute)) != null)
+                    {
+                        matchedType = findAllDerivedTypes(typeof(T).BaseType).Where(t => t.Name == from.block[0].value).First();
+                    }
+
                     if (matchedType != null)
                     {
                         return (T)dynamicCall("unmarshalFromBase", matchedType, new object[] { from.block[1] });
@@ -654,6 +457,10 @@ namespace WastelandA23.Marshalling
                 //direct assignment
                 if (item.isValue())
                 {
+                    Dictionary<Type, Func<string, Object>> bla = new Dictionary<Type, Func<string, Object>> {
+                        {typeof(int), (s) => ((Object)Convert.ToInt32(s))}
+                    };
+                    if (converter == null) { bla.TryGetValue(type, out converter); };
                     newValue = (converter == null) ? (item.value) : (converter(item.value));
                 }
                 else
@@ -669,12 +476,11 @@ namespace WastelandA23.Marshalling
                 {
                     throw new ArgumentException("Failed to marshal", typeof(T).Name, e);
                 }
-
             }
             return result;
         }
 
-        static public T unmarshalFrom<T>(string stringRepresentation) where T: class
+        static public T unmarshalFrom<T>(string stringRepresentation) where T : class
         {
             ListBlock block = explodeNested(stringRepresentation);
             return unmarshalFrom<T>(block);

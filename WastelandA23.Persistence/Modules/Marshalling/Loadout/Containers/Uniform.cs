@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace WastelandA23.Marshalling.Loadout
 {
@@ -10,6 +6,8 @@ namespace WastelandA23.Marshalling.Loadout
     {
         public List<Item> uniformItems { get; private set; }
 
-        public Uniform() { }
+        public Uniform()
+        {
+        }
     }
 }

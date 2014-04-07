@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace WastelandA23.Marshalling.Loadout
+﻿namespace WastelandA23.Marshalling.Loadout
 {
     public class Magazine : Item
     {
+        // TODO: string -> int
         [ParamNumber(0)]
-        public string Bullets { get; set; }
+        public int Bullets { get; set; }
 
-        public Magazine() : base() { } 
-
+        public Magazine()
+            : base()
+        {
+        }
     }
 }

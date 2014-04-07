@@ -10,14 +10,16 @@ namespace WastelandA23.Marshalling.Loadout
     {
 
         //public AssignedItems assigendItems { get; private set; }
-        public List<string> assigendItems { get; private set; }
+        //TODO: List<AsssignableItem> assignedItems
+        public List<AssignableItem> assigendItems { get; private set; }
+        //List<AbstractWeapon> weapons ?
         public PrimaryWeapon primaryWeapon { get; private set; }
         public HandgunWeapon handgunWeapon { get; private set; }
         public SecondaryWeapon secondaryWeapon { get; private set; }
         public Uniform uniform { get; private set; }
         public Vest vest { get; private set; }
         public Backpack backpack { get; private set; }
-
+        
         public Loadout() { }
 
         /*

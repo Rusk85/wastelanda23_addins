@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace WastelandA23.Marshalling
 {
@@ -7,6 +6,8 @@ namespace WastelandA23.Marshalling
     Inherited = true)]
     public sealed class ConsumeFlattenedAttribute : Attribute
     {
-        public ConsumeFlattenedAttribute() { }
+        public ConsumeFlattenedAttribute()
+        {
+        }
     }
 }

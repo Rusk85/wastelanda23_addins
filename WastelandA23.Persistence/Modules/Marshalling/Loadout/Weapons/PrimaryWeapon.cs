@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace WastelandA23.Marshalling.Loadout
 {
@@ -10,18 +6,12 @@ namespace WastelandA23.Marshalling.Loadout
     {
         [ParamNumber(0)]
         public List<PrimaryWeaponItems> primaryWeaponItems { get; set; }
+
         [ParamNumber(1)]
         public override Magazine loadedMagazines { get; set; }
-        
 
-        public PrimaryWeapon() { }
-
-        public PrimaryWeapon(List<PrimaryWeaponItems> primaryWeaponItems,  Magazine loadedMagazines)
+        public PrimaryWeapon()
         {
-            this.primaryWeaponItems = primaryWeaponItems;
-            this.loadedMagazines = loadedMagazines;
         }
-
-
     }
 }

@@ -22,7 +22,8 @@ namespace MarshalTest
             public string v2;
         }
 
-        static string test = @"[[""SAVE"",""76561197964280320""],[""Colt1911"",[""Colt1911""]],[[""ItemMap"",""ItemCompass"",""ItemWatch"",""H_MilCap_mcamo"",""G_Tactical_Black""],["""",[],[]],[""Colt1911"",["""","""",""""],[""7Rnd_45ACP_1911"",7]],["""",[],[]],[""U_B_CombatUniform_mcam"",[[""Magazine"",[""7Rnd_45ACP_1911"",7]],""ItemMap""]],[""V_BandollierB_rgr"",[]],[""B_Carryall_cbr"",[]]]]";
+        //static string test = @"[[""SAVE""],[""Rusk"",""76561197964280320""],[""Colt1911"",[""Colt1911""]],[[""ItemMap"",""ItemCompass"",""ItemWatch"",""H_MilCap_mcamo"",""G_Tactical_Black""],["""",[],[]],[""Colt1911"",["""","""",""""],[""7Rnd_45ACP_1911"",7]],["""",[],[]],[""U_B_CombatUniform_mcam"",[[""Magazine"",[""7Rnd_45ACP_1911"",7]],""ItemMap""]],[""V_BandollierB_rgr"",[]],[""B_Carryall_cbr"",[]]]]";
+        static string test = @"[[""SAVE""],[""Rusk"",""76561197964280320""],[""Colt1911"",[""Colt1911""]],[[[""AssignableItem"",[""ItemMap""]],[""AssignableItem"",[""ItemCompass""]],[""AssignableItem"",[""ItemWatch""]],[""AssignableItem"",[""H_MilCap_mcamo""]],[""AssignableItem"",[""G_Tactical_Black""]]],["""",[],[]],[""Colt1911"",["""","""",""""],[""7Rnd_45ACP_1911"",2]],["""",[],[]],[""U_B_CombatUniform_mcam"",[[""Magazine"",[""7Rnd_45ACP_1911"",7]]]],[""V_BandollierB_rgr"",[]],[""B_Carryall_cbr"",[]]]]";
 
         static private void testMethod<T>(T obj, Test t)
         {
@@ -37,8 +38,14 @@ namespace MarshalTest
             //Marshaller.ListBlock block = Marshaller.explodeNested(test);
             //obj = Marshaller.marshalFrom(obj, "[[1,2]]");
 
+            //var ctx = new WastelandA23.Model.LoadoutModelContainer();
             player = Marshaller.unmarshalFrom<Player>(test);
-            var dict = Marshaller.createParamNumberDictionaryWithInheritance(typeof(PrimaryWeapon));
+            //var dict = Marshaller.createParamNumberDictionaryWithInheritance(typeof(PrimaryWeapon));
+            
+            //ctx.Database.Initialize(true);
+            //ctx.SaveChanges();
+            //var db_player = ctx.Players.First();
+
 
             Console.ReadLine();
             
