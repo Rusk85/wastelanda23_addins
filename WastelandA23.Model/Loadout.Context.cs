@@ -13,10 +13,10 @@ namespace WastelandA23.Model
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
     
-    public partial class LoadoutModelContainer : DbContext
+    public partial class LoadoutContainer : DbContext
     {
-        public LoadoutModelContainer()
-            : base("name=LoadoutModelContainer")
+        public LoadoutContainer()
+            : base("name=LoadoutContainer")
         {
         }
     

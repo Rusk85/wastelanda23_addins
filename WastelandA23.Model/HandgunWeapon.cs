@@ -16,10 +16,12 @@ namespace WastelandA23.Model
     {
         public HandgunWeapon()
         {
+            this.Loadouts = new HashSet<Loadout>();
             this.HandgunItems = new HashSet<HandgunItem>();
         }
     
     
+        public virtual ICollection<Loadout> Loadouts { get; set; }
         public virtual ICollection<HandgunItem> HandgunItems { get; set; }
     }
 }

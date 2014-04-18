@@ -12,15 +12,10 @@ namespace WastelandA23.Model
     using System;
     using System.Collections.Generic;
     
-    public abstract partial class AbstractWeapon : Item
+    public partial class AbstractWeapon : Item
     {
-        public AbstractWeapon()
-        {
-            this.AbstractWeaponItems = new HashSet<AbstractWeaponItem>();
-        }
-    
+        public Nullable<int> MagazineId { get; set; }
     
         public virtual Magazine Magazine { get; set; }
-        public virtual ICollection<AbstractWeaponItem> AbstractWeaponItems { get; set; }
     }
 }

@@ -14,7 +14,14 @@ namespace WastelandA23.Model
     
     public partial class Item
     {
+        public Item()
+        {
+            this.AbstractContainers = new HashSet<AbstractContainer>();
+        }
+    
         public int Id { get; set; }
         public string ClassName { get; set; }
+    
+        public virtual ICollection<AbstractContainer> AbstractContainers { get; set; }
     }
 }

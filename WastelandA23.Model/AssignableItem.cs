@@ -14,6 +14,13 @@ namespace WastelandA23.Model
     
     public partial class AssignableItem : Item
     {
+        public AssignableItem()
+        {
+            this.Loadouts = new HashSet<Loadout>();
+        }
+    
         public int LoadoutId { get; set; }
+    
+        public virtual ICollection<Loadout> Loadouts { get; set; }
     }
 }

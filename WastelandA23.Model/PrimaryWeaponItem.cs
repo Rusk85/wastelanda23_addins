@@ -14,6 +14,12 @@ namespace WastelandA23.Model
     
     public partial class PrimaryWeaponItem : AbstractWeaponItem
     {
-        public int PrimaryWeaponId { get; set; }
+        public PrimaryWeaponItem()
+        {
+            this.PrimaryWeapons = new HashSet<PrimaryWeapon>();
+        }
+    
+    
+        public virtual ICollection<PrimaryWeapon> PrimaryWeapons { get; set; }
     }
 }

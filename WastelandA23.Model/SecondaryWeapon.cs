@@ -16,10 +16,12 @@ namespace WastelandA23.Model
     {
         public SecondaryWeapon()
         {
+            this.Loadouts = new HashSet<Loadout>();
             this.SecondaryWeaponItems = new HashSet<SecondaryWeaponItem>();
         }
     
     
+        public virtual ICollection<Loadout> Loadouts { get; set; }
         public virtual ICollection<SecondaryWeaponItem> SecondaryWeaponItems { get; set; }
     }
 }

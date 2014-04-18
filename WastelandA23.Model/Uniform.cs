@@ -14,5 +14,12 @@ namespace WastelandA23.Model
     
     public partial class Uniform : AbstractContainer
     {
+        public Uniform()
+        {
+            this.Loadouts = new HashSet<Loadout>();
+        }
+    
+    
+        public virtual ICollection<Loadout> Loadouts { get; set; }
     }
 }

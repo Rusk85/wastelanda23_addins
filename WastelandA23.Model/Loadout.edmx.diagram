@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="6ed169c5fce748759bfe030dae5213e4" Name="LoadoutDiagram" ZoomLevel="97" >
+        <EntityTypeShape EntityType="Loadout.Player" Width="1.5" PointX="16.5" PointY="3.875" />
+        <EntityTypeShape EntityType="Loadout.PlayerInfo" Width="1.5" PointX="14.5" PointY="2" />
+        <EntityTypeShape EntityType="Loadout.CurrentWeapon" Width="1.5" PointX="18.75" PointY="3" />
+        <EntityTypeShape EntityType="Loadout.Loadout" Width="1.5" PointX="16.75" PointY="7" />
+        <EntityTypeShape EntityType="Loadout.Item" Width="1.5" PointX="16.75" PointY="13.125" />
+        <EntityTypeShape EntityType="Loadout.Magazine" Width="1.5" PointX="14.125" PointY="13.625" />
+        <EntityTypeShape EntityType="Loadout.AssignableItem" Width="1.5" PointX="16.75" PointY="11.5" />
+        <EntityTypeShape EntityType="Loadout.AbstractWeapon" Width="1.5" PointX="14.125" PointY="11.375" />
+        <EntityTypeShape EntityType="Loadout.PrimaryWeapon" Width="1.5" PointX="14.25" PointY="9.625" />
+        <EntityTypeShape EntityType="Loadout.SecondaryWeapon" Width="1.5" PointX="14.25" PointY="7.875" />
+        <EntityTypeShape EntityType="Loadout.HandgunWeapon" Width="1.5" PointX="14.25" PointY="6.25" />
+        <EntityTypeShape EntityType="Loadout.AbstractWeaponItem" Width="1.5" PointX="12" PointY="11.5" />
+        <EntityTypeShape EntityType="Loadout.SecondaryWeaponItem" Width="1.5" PointX="12" PointY="7.75" />
+        <EntityTypeShape EntityType="Loadout.HandgunItem" Width="1.5" PointX="12" PointY="6.25" />
+        <EntityTypeShape EntityType="Loadout.PrimaryWeaponItem" Width="1.5" PointX="12" PointY="9.625" />
+        <EntityTypeShape EntityType="Loadout.AbstractContainer" Width="1.5" PointX="21.25" PointY="7.375" />
+        <EntityTypeShape EntityType="Loadout.Backpack" Width="1.5" PointX="19" PointY="8" />
+        <EntityTypeShape EntityType="Loadout.Uniform" Width="1.5" PointX="19" PointY="6.375" />
+        <EntityTypeShape EntityType="Loadout.Vest" Width="1.5" PointX="19" PointY="9.5" />
+        <EntityTypeShape EntityType="Loadout.CurrentMode" Width="1.5" PointX="20.75" PointY="3" />
+        <InheritanceConnector EntityType="Loadout.AssignableItem" />
+        <InheritanceConnector EntityType="Loadout.AbstractWeapon" />
+        <InheritanceConnector EntityType="Loadout.PrimaryWeapon" />
+        <InheritanceConnector EntityType="Loadout.SecondaryWeapon" />
+        <InheritanceConnector EntityType="Loadout.HandgunWeapon" />
+        <InheritanceConnector EntityType="Loadout.AbstractWeaponItem" />
+        <InheritanceConnector EntityType="Loadout.SecondaryWeaponItem" />
+        <InheritanceConnector EntityType="Loadout.HandgunItem" />
+        <InheritanceConnector EntityType="Loadout.PrimaryWeaponItem" />
+        <InheritanceConnector EntityType="Loadout.Backpack" />
+        <InheritanceConnector EntityType="Loadout.Uniform" />
+        <InheritanceConnector EntityType="Loadout.Vest" />
+        <AssociationConnector Association="Loadout.CurrentWeaponPlayer" />
+        <AssociationConnector Association="Loadout.CurrentWeaponCurrentMode" />
+        <AssociationConnector Association="Loadout.PlayerPlayerInfo" />
+        <AssociationConnector Association="Loadout.PlayerLoadout" />
+        <AssociationConnector Association="Loadout.LoadoutHandgunWeapon" />
+        <AssociationConnector Association="Loadout.LoadoutSecondaryWeapon" />
+        <AssociationConnector Association="Loadout.LoadoutPrimaryWeapon" />
+        <AssociationConnector Association="Loadout.HandgunWeaponHandgunItem" />
+        <AssociationConnector Association="Loadout.SecondaryWeaponSecondaryWeaponItem" />
+        <AssociationConnector Association="Loadout.PrimaryWeaponPrimaryWeaponItem" />
+        <AssociationConnector Association="Loadout.AssignableItemLoadout" />
+        <InheritanceConnector EntityType="Loadout.Magazine" />
+        <AssociationConnector Association="Loadout.LoadoutUniform" />
+        <AssociationConnector Association="Loadout.LoadoutBackpack" />
+        <AssociationConnector Association="Loadout.LoadoutVest" />
+        <AssociationConnector Association="Loadout.ItemAbstractContainer" />
+        <AssociationConnector Association="Loadout.MagazineAbstractWeapon" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

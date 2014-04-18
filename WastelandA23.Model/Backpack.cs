@@ -11,8 +11,16 @@ namespace WastelandA23.Model
 {
     using System;
     using System.Collections.Generic;
-    
+    using System.ComponentModel.DataAnnotations;
+
     public partial class Backpack : AbstractContainer
     {
+        public Backpack()
+        {
+            this.Loadouts = new HashSet<Loadout>();
+        }
+    
+    
+        public virtual ICollection<Loadout> Loadouts { get; set; }
     }
 }

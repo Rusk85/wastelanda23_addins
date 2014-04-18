@@ -14,9 +14,16 @@ namespace WastelandA23.Model
     
     public partial class CurrentWeapon
     {
+        public CurrentWeapon()
+        {
+            this.Players = new HashSet<Player>();
+        }
+    
         public int Id { get; set; }
         public string ClassName { get; set; }
+        public int CurrentModeId { get; set; }
     
+        public virtual ICollection<Player> Players { get; set; }
         public virtual CurrentMode CurrentMode { get; set; }
     }
 }

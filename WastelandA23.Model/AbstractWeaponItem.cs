@@ -12,8 +12,7 @@ namespace WastelandA23.Model
     using System;
     using System.Collections.Generic;
     
-    public abstract partial class AbstractWeaponItem : Item
+    public partial class AbstractWeaponItem : Item
     {
-        public int AbstractWeaponId { get; set; }
     }
 }

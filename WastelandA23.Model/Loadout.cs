@@ -16,17 +16,25 @@ namespace WastelandA23.Model
     {
         public Loadout()
         {
+            this.Players = new HashSet<Player>();
             this.AssignableItems = new HashSet<AssignableItem>();
         }
     
         public int Id { get; set; }
+        public Nullable<int> HandgunWeaponId { get; set; }
+        public Nullable<int> SecondaryWeaponId { get; set; }
+        public Nullable<int> PrimaryWeaponId { get; set; }
+        public Nullable<int> UniformId { get; set; }
+        public Nullable<int> BackpackId { get; set; }
+        public Nullable<int> VestId { get; set; }
     
-        public virtual Uniform Uniform { get; set; }
+        public virtual ICollection<Player> Players { get; set; }
         public virtual HandgunWeapon HandgunWeapon { get; set; }
         public virtual SecondaryWeapon SecondaryWeapon { get; set; }
         public virtual PrimaryWeapon PrimaryWeapon { get; set; }
+        public virtual ICollection<AssignableItem> AssignableItems { get; set; }
+        public virtual Uniform Uniform { get; set; }
         public virtual Backpack Backpack { get; set; }
         public virtual Vest Vest { get; set; }
-        public virtual ICollection<AssignableItem> AssignableItems { get; set; }
     }
 }

@@ -16,9 +16,11 @@ namespace WastelandA23.Model
     {
         public int Id { get; set; }
         public string PlayerUID { get; set; }
+        public Nullable<int> CurrentWeaponId { get; set; }
+        public Nullable<int> LoadoutId { get; set; }
     
-        public virtual PlayerInfo PlayerInfo { get; set; }
         public virtual CurrentWeapon CurrentWeapon { get; set; }
+        public virtual PlayerInfo PlayerInfo { get; set; }
         public virtual Loadout Loadout { get; set; }
     }
 }

@@ -17,5 +17,7 @@ namespace WastelandA23.Model
         public int Id { get; set; }
         public string Name { get; set; }
         public string PlayerUID { get; set; }
+    
+        public virtual Player Player { get; set; }
     }
 }

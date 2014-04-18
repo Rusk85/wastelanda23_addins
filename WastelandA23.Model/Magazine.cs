@@ -14,6 +14,13 @@ namespace WastelandA23.Model
     
     public partial class Magazine : Item
     {
+        public Magazine()
+        {
+            this.AbstractWeapons = new HashSet<AbstractWeapon>();
+        }
+    
         public string Bullets { get; set; }
+    
+        public virtual ICollection<AbstractWeapon> AbstractWeapons { get; set; }
     }
 }
