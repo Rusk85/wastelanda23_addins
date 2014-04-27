@@ -5,11 +5,16 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Data.Entity;
+using AutoMapper;
 
 namespace WastelandA23.Marshalling
 {
     public class Marshaller
     {
+
+        public static Assembly ModelAssembly = Assembly.GetAssembly(typeof(WastelandA23.Model.CodeFirstModel.LoadoutContext));
+
         public class ListBlock
         {
             public ListBlock()
@@ -320,6 +325,18 @@ namespace WastelandA23.Marshalling
             return null;
         }
 
+        static private void mapToEFModel<From>(From from)
+        {
+            //TODO: Mapping for inheritance:
+            //https://github.com/AutoMapper/AutoMapper/wiki/Mapping-inheritance
+            //http://stackoverflow.com/questions/11264455/automapper-with-base-class-and-different-configuration-options-for-implementatio
+            var to = ModelAssembly.GetTypes().Where(t => t.Name == from.GetType().Name);
+            if (to.ToList().Count == 0) { return; }
+            if (to.ToList().Count > 1) { to = to.OrderByDescending(t => t.Namespace.Length); }
+            Mapper.CreateMap(from.GetType(), to.First());
+        }
+
+
         static private IList<string> unmarshalFromStringListToList(IList<ListBlock> from)
         {
             return from.Select(i => i.value).ToList();
@@ -399,9 +416,11 @@ namespace WastelandA23.Marshalling
 
                     if (matchedType != null)
                     {
+                        mapToEFModel(matchedType);
                         return (T)dynamicCall("unmarshalFromBase", matchedType, new object[] { from.block[1] });
                     }
                 }
+                mapToEFModel(result);
                 return unmarshalObjectFrom<T>(from.block);
             }
             //object (one member) ^= scalar

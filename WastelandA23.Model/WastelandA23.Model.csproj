@@ -56,109 +56,33 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AbstractContainer.cs">
-      <DependentUpon>Loadout.tt</DependentUpon>
-    </Compile>
-    <Compile Include="AbstractWeapon.cs">
-      <DependentUpon>Loadout.tt</DependentUpon>
-    </Compile>
-    <Compile Include="AbstractWeaponItem.cs">
-      <DependentUpon>Loadout.tt</DependentUpon>
-    </Compile>
-    <Compile Include="AssignableItem.cs">
-      <DependentUpon>Loadout.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Backpack.cs">
-      <DependentUpon>Loadout.tt</DependentUpon>
-    </Compile>
-    <Compile Include="CurrentMode.cs">
-      <DependentUpon>Loadout.tt</DependentUpon>
-    </Compile>
-    <Compile Include="CurrentWeapon.cs">
-      <DependentUpon>Loadout.tt</DependentUpon>
-    </Compile>
-    <Compile Include="HandgunItem.cs">
-      <DependentUpon>Loadout.tt</DependentUpon>
-    </Compile>
-    <Compile Include="HandgunWeapon.cs">
-      <DependentUpon>Loadout.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Item.cs">
-      <DependentUpon>Loadout.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Loadout.Context.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Loadout.Context.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Loadout.cs">
-      <DependentUpon>Loadout.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Loadout.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Loadout.edmx</DependentUpon>
-    </Compile>
-    <Compile Include="Loadout1.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Loadout.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Magazine.cs">
-      <DependentUpon>Loadout.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Player.cs">
-      <DependentUpon>Loadout.tt</DependentUpon>
-    </Compile>
-    <Compile Include="PlayerInfo.cs">
-      <DependentUpon>Loadout.tt</DependentUpon>
-    </Compile>
-    <Compile Include="PrimaryWeapon.cs">
-      <DependentUpon>Loadout.tt</DependentUpon>
-    </Compile>
-    <Compile Include="PrimaryWeaponItem.cs">
-      <DependentUpon>Loadout.tt</DependentUpon>
-    </Compile>
+    <Compile Include="CodeFirstModel\ModelClasses\AssignableItem.cs" />
+    <Compile Include="CodeFirstModel\ModelClasses\Backpack.cs" />
+    <Compile Include="CodeFirstModel\ModelClasses\CurrentMode.cs" />
+    <Compile Include="CodeFirstModel\ModelClasses\CurrentWeapon.cs" />
+    <Compile Include="CodeFirstModel\ModelClasses\HandgunWeaponItem.cs" />
+    <Compile Include="CodeFirstModel\ModelClasses\HangunWeapon.cs" />
+    <Compile Include="CodeFirstModel\ModelClasses\Item.cs" />
+    <Compile Include="CodeFirstModel\ModelClasses\Loadout.cs" />
+    <Compile Include="CodeFirstModel\Context\LoadoutContext.cs" />
+    <Compile Include="CodeFirstModel\ModelClasses\Magazine.cs" />
+    <Compile Include="CodeFirstModel\ModelClasses\Player.cs" />
+    <Compile Include="CodeFirstModel\ModelClasses\PlayerInfo.cs" />
+    <Compile Include="CodeFirstModel\ModelClasses\PrimaryWeapon.cs" />
+    <Compile Include="CodeFirstModel\ModelClasses\PrimaryWeaponItem.cs" />
+    <Compile Include="CodeFirstModel\ModelClasses\SecondaryWeapon.cs" />
+    <Compile Include="CodeFirstModel\ModelClasses\SecondaryWeaponItem.cs" />
+    <Compile Include="CodeFirstModel\ModelClasses\Uniform.cs" />
+    <Compile Include="CodeFirstModel\ModelClasses\Vest.cs" />
+    <Compile Include="Init\LoadoutContextSeed.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SecondaryWeapon.cs">
-      <DependentUpon>Loadout.tt</DependentUpon>
-    </Compile>
-    <Compile Include="SecondaryWeaponItem.cs">
-      <DependentUpon>Loadout.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Uniform.cs">
-      <DependentUpon>Loadout.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Vest.cs">
-      <DependentUpon>Loadout.tt</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.Config" />
-    <EntityDeploy Include="Loadout.edmx">
-      <Generator>EntityModelCodeGenerator</Generator>
-      <LastGenOutput>Loadout.Designer.cs</LastGenOutput>
-    </EntityDeploy>
-    <None Include="Loadout.Context.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Loadout.Context.cs</LastGenOutput>
-      <DependentUpon>Loadout.edmx</DependentUpon>
-    </None>
-    <None Include="Loadout.edmx.diagram">
-      <DependentUpon>Loadout.edmx</DependentUpon>
-    </None>
-    <None Include="Loadout.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Loadout1.cs</LastGenOutput>
-      <DependentUpon>Loadout.edmx</DependentUpon>
-    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Loadout.edmx.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

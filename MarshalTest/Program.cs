@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.Entity;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,50 +12,42 @@ namespace MarshalTest
 {
     class Program
     {
-        class Test2 {
-            public string a1, a2;
-        }
-        class Test
-        {
-            [ParamNumber(0)]
-            public string v1;
-            [ParamNumber(1)]
-            public string v2;
-        }
 
         //static string test = @"[[""SAVE""],[""Rusk"",""76561197964280320""],[""Colt1911"",[""Colt1911""]],[[""ItemMap"",""ItemCompass"",""ItemWatch"",""H_MilCap_mcamo"",""G_Tactical_Black""],["""",[],[]],[""Colt1911"",["""","""",""""],[""7Rnd_45ACP_1911"",7]],["""",[],[]],[""U_B_CombatUniform_mcam"",[[""Magazine"",[""7Rnd_45ACP_1911"",7]],""ItemMap""]],[""V_BandollierB_rgr"",[]],[""B_Carryall_cbr"",[]]]]";
         static string test = @"[[""SAVE""],[""Rusk"",""76561197964280320""],[""Colt1911"",[""Colt1911""]],[[[""AssignableItem"",[""ItemMap""]],[""AssignableItem"",[""ItemCompass""]],[""AssignableItem"",[""ItemWatch""]],[""AssignableItem"",[""H_MilCap_mcamo""]],[""AssignableItem"",[""G_Tactical_Black""]]],["""",[],[]],[""Colt1911"",["""","""",""""],[""7Rnd_45ACP_1911"",2]],["""",[],[]],[""U_B_CombatUniform_mcam"",[[""Magazine"",[""7Rnd_45ACP_1911"",7]]]],[""V_BandollierB_rgr"",[]],[""B_Carryall_cbr"",[]]]]";
 
-        static private void testMethod<T>(T obj, Test t)
-        {
-            Type type = typeof(T);
-            Console.WriteLine(type.Name);
-        }
-
         static void Main(string[] args)
          {
-            Test obj = null;
             Player player = new Player();
-            //Marshaller.ListBlock block = Marshaller.explodeNested(test);
-            //obj = Marshaller.marshalFrom(obj, "[[1,2]]");
-
-            //var ctx = new WastelandA23.Model.LoadoutModelContainer();
             player = Marshaller.unmarshalFrom<Player>(test);
-            //var dict = Marshaller.createParamNumberDictionaryWithInheritance(typeof(PrimaryWeapon));
-            
-            //ctx.Database.Initialize(true);
-            //ctx.SaveChanges();
-            //var db_player = ctx.Players.First();
 
 
-            Console.ReadLine();
-            
-            /* 
-            Type type = typeof(Test);
-            Object val = obj;
-            var castMethod = typeof(Program).GetMethod("testMethod", BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(type);
-            castMethod.Invoke(new Marshaller(), new object[] { val, val });
-             */
+            var i = 0;
+
+            while (i < 1)
+            {
+                using (var ctx = new WastelandA23.Model.CodeFirstModel.LoadoutContext())
+                {
+                    Database.SetInitializer(new WastelandA23.Model.Init.LoadoutContextSeed());
+                    ctx.Database.Initialize(true);
+                }
+                using (var ctx = new WastelandA23.Model.CodeFirstModel.LoadoutContext())
+                {
+                    var backpack = ctx.Backpacks.First();
+                    ctx.Backpacks.Remove(backpack);
+                    ctx.SaveChanges();
+                    
+                    var p = ctx.Players.FirstOrDefault();
+                    ctx.Players.Remove(p);
+                    ctx.SaveChanges();
+                }
+                i++;
+            }
+
+
+
+
+
 
             Console.ReadLine();
         }
