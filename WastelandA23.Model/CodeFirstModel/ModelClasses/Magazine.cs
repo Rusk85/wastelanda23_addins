@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace WastelandA23.Model.CodeFirstModel
 {
-    public class Magazine
+    public class Magazine : Item
     {
-        public int Id { get; set; }
-        public string ClassName { get; set; }
         public int Bullets { get; set; }
 
         public virtual HandgunWeapon HandgunWeapon { get; set; }

@@ -38,6 +38,7 @@ namespace MarshalTest
                     Player player = new Player();
                     player = Marshaller.unmarshalFrom<Player>(test_target);
                     var type_maps = Mapper.GetAllTypeMaps();
+                    //Mapper.CreateMap<Item, WastelandA23.Model.CodeFirstModel.Item>().Include<Magazine, WastelandA23.Model.CodeFirstModel.Magazine>();
                     var model_player = Mapper.Map<WastelandA23.Model.CodeFirstModel.Player>(player);
                     ctx.Players.Add(model_player);
                     ctx.SaveChanges();

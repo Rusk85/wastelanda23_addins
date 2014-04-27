@@ -9,6 +9,7 @@ namespace WastelandA23.Model.CodeFirstModel
     public class Item
     {
         public int Id { get; set; }
+
         public string ClassName { get; set; }
 
         public int? BackpackId { get; set; }

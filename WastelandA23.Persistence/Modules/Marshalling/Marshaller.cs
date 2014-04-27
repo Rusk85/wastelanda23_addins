@@ -325,16 +325,43 @@ namespace WastelandA23.Marshalling
             return null;
         }
 
+        static private void mapToEFModel<From, To>(From from, To to, List<Tuple<Type,Type>> derivedTypes)
+        {
+            var maps = Mapper.GetAllTypeMaps();
+            var tgtTypeMap = maps.ToList().Where(_ => _.SourceType == from.GetType()).First();
+            derivedTypes = derivedTypes.Where(_ => 
+                !tgtTypeMap.IncludedDerivedTypes.Select(tm => tm.SourceType).Contains(_.Item1)).ToList();
+            if (derivedTypes.Count == 0) { return; }
+            derivedTypes.ForEach(t => tgtTypeMap.IncludeDerivedTypes(t.Item1, t.Item2));
+        }
+
         static private void mapToEFModel<From>(From from)
         {
-            //TODO: Mapping for inheritance:
-            //https://github.com/AutoMapper/AutoMapper/wiki/Mapping-inheritance
-            //http://stackoverflow.com/questions/11264455/automapper-with-base-class-and-different-configuration-options-for-implementatio
             var to = ModelAssembly.GetTypes().Where(t => t.Name == from.GetType().Name);
             if (to.ToList().Count == 1 
                 && from.GetType().Assembly == typeof(Marshaller).Assembly) 
-            { 
+            {
                 Mapper.CreateMap(from.GetType(), to.First());
+                var derivedTypesFrom = findAllDerivedTypes(from.GetType());
+                if (derivedTypesFrom.Count > 0)
+                {
+                    var derivedTypesTo = findAllDerivedTypes(to.First());
+                    if (derivedTypesTo.Count > 0)
+                    {
+                        Func<List<Type>, List<Type>, List<Tuple<Type, Type>>> matchDerivedTypes = 
+                            delegate(List<Type> Source, List<Type> Destination)
+                        {
+                            return Source.Join(Destination,
+                                src => src.Name,
+                                dst => dst.Name,
+                                (src, dst) => Tuple.Create(src, dst)).ToList();
+                        };
+                        mapToEFModel((From)Activator.CreateInstance(from.GetType()), to.First(),
+                           matchDerivedTypes(derivedTypesFrom, 
+                           derivedTypesTo));
+                    }
+
+                }
             }
         }
 
