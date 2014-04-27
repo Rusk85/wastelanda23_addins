@@ -10,7 +10,7 @@ namespace WastelandA23.Model.CodeFirstModel
     {
         public int Id { get; set; }
         public string ClassName { get; set; }
-        public virtual Magazine Magazine { get; set; }
+        public virtual Magazine LoadedMagazine { get; set; }
         public virtual Loadout Loadout { get; set; }
         public virtual ICollection<SecondaryWeaponItem> SecondaryWeaponItems { get; set; }
     }

@@ -3,16 +3,16 @@
     public class Player
     {
         [ParamNumber(0)]
-        public Command command { get; private set; }
+        public Command Command { get; private set; }
 
         [ParamNumber(1)]
-        public PlayerInfo playerInfo { get; private set; }
+        public PlayerInfo PlayerInfo { get; private set; }
 
         [ParamNumber(2)]
-        public CurrentWeapon currentWeapon { get; private set; }
+        public CurrentWeapon CurrentWeapon { get; private set; }
 
         [ParamNumber(3)]
-        public Loadout loadout { get; private set; }
+        public Loadout Loadout { get; private set; }
 
         public Player()
         {

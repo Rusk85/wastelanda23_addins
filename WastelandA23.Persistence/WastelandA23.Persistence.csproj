@@ -76,13 +76,13 @@
     <Compile Include="Modules\Marshalling\Loadout\State\CurrentWeapon.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Weapons\AbstractWeapon.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Weapons\AbstractWeaponItem.cs" />
-    <Compile Include="Modules\Marshalling\Loadout\Weapons\HandgunItems.cs" />
+    <Compile Include="Modules\Marshalling\Loadout\Weapons\HandgunItem.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Weapons\HandgunWeapon.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Items\Magazine.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Weapons\PrimaryWeapon.cs" />
-    <Compile Include="Modules\Marshalling\Loadout\Weapons\PrimaryWeaponItems.cs" />
+    <Compile Include="Modules\Marshalling\Loadout\Weapons\PrimaryWeaponItem.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Weapons\SecondaryWeapon.cs" />
-    <Compile Include="Modules\Marshalling\Loadout\Weapons\SecondaryWeaponItems.cs" />
+    <Compile Include="Modules\Marshalling\Loadout\Weapons\SecondaryWeaponItem.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Containers\Uniform.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Containers\Vest.cs" />
     <Compile Include="Modules\Marshalling\Marshaller.cs" />

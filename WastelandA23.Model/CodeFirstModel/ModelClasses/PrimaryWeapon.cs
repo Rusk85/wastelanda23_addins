@@ -12,7 +12,7 @@ namespace WastelandA23.Model.CodeFirstModel
 
         public string ClassName { get; set; }
 
-        public virtual Magazine Magazine { get; set; }
+        public virtual Magazine LoadedMagazine { get; set; }
 
         public virtual Loadout Loadout { get; set; }
 

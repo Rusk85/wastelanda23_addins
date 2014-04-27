@@ -85,21 +85,21 @@ namespace WastelandA23.Model.CodeFirstModel
                 .WillCascadeOnDelete(true);
 
             m.Entity<Magazine>().HasOptional(_ => _.HandgunWeapon)
-                .WithOptionalDependent(_ => _.Magazine)
+                .WithOptionalDependent(_ => _.LoadedMagazine)
                 .Map(_ =>
                 {
                     _.MapKey("HandgunWeaponId");
                 })
                 .WillCascadeOnDelete(true);
             m.Entity<Magazine>().HasOptional(_ => _.PrimaryWeapon)
-                .WithOptionalDependent(_ => _.Magazine)
+                .WithOptionalDependent(_ => _.LoadedMagazine)
                 .Map(_ =>
                 {
                     _.MapKey("PrimaryWeaponId");
                 })
                 .WillCascadeOnDelete(true);
             m.Entity<Magazine>().HasOptional(_ => _.SecondaryWeapon)
-                .WithOptionalDependent(_ => _.Magazine)
+                .WithOptionalDependent(_ => _.LoadedMagazine)
                 .Map(_ =>
                 {
                     _.MapKey("SecondaryWeaponId");
@@ -141,7 +141,7 @@ namespace WastelandA23.Model.CodeFirstModel
             m.Entity<SecondaryWeapon>().HasMany(_ => _.SecondaryWeaponItems)
                 .WithRequired(_ => _.SecondaryWeapon).HasForeignKey(_ => _.SecondaryWeaponId)
                 .WillCascadeOnDelete(true);
-            m.Entity<Loadout>().HasMany(_ => _.AssignableItems)
+            m.Entity<Loadout>().HasMany(_ => _.AssignedItems)
                 .WithOptional().HasForeignKey(_ => _.LoadoutId)
                 .WillCascadeOnDelete(true);
             m.Entity<Backpack>().HasMany(_ => _.Items)

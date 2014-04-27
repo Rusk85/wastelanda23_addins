@@ -4,6 +4,6 @@
     {
         public string ClassName { get; private set; }
 
-        public abstract Magazine loadedMagazines { get; set; }
+        public abstract Magazine LoadedMagazine { get; set; }
     }
 }

@@ -5,10 +5,10 @@ namespace WastelandA23.Marshalling.Loadout
     public class SecondaryWeapon : AbstractWeapon
     {
         [ParamNumber(0)]
-        public List<SecondaryWeaponItems> secondaryWeaponItems { get; set; }
+        public List<SecondaryWeaponItem> SecondaryWeaponItems { get; set; }
 
         [ParamNumber(1)]
-        public override Magazine loadedMagazines { get; set; }
+        public override Magazine LoadedMagazine { get; set; }
 
         public SecondaryWeapon()
         {

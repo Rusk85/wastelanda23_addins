@@ -11,6 +11,18 @@ namespace WastelandA23.Model.Init
     public class LoadoutContextSeed : DropCreateDatabaseAlways<LoadoutContext>
     {
 
+        private bool drop;
+
+        public LoadoutContextSeed(bool drop = true) 
+        {
+            this.drop = drop;
+        }
+
+        public override void InitializeDatabase(LoadoutContext context)
+        {
+            if (drop) { base.InitializeDatabase(context); }
+        }
+
         protected override void Seed(LoadoutContext context)
         {
 
@@ -33,14 +45,14 @@ namespace WastelandA23.Model.Init
             var pWpn = new PrimaryWeapon()
             {
                 ClassName = "PrimaryWeapon",
-                Magazine = new Magazine() { ClassName = "PrimWpnMag", Bullets = 100 },
+                LoadedMagazine = new Magazine() { ClassName = "PrimWpnMag", Bullets = 100 },
                 PrimaryWeaponItems = new List<PrimaryWeaponItem> { new PrimaryWeaponItem() { ClassName = "PrimWpnItem_Silencer" } }
             };
 
             var sWpn = new SecondaryWeapon()
             {
                 ClassName = "SecondaryWeapon",
-                Magazine = new Magazine() { ClassName = "SecWpnMag", Bullets = 22 },
+                LoadedMagazine = new Magazine() { ClassName = "SecWpnMag", Bullets = 22 },
                 SecondaryWeaponItems = new List<SecondaryWeaponItem>
                 {
                     new SecondaryWeaponItem(){ClassName="SecWpnItem_Scope"}
@@ -50,7 +62,7 @@ namespace WastelandA23.Model.Init
             var hWpn = new HandgunWeapon()
             {
                 ClassName = "HandgunWeapon",
-                Magazine = new Magazine() { ClassName = "handWpnMag", Bullets = 10 },
+                LoadedMagazine = new Magazine() { ClassName = "handWpnMag", Bullets = 10 },
                 HandgunWeaponItems = new List<HandgunWeaponItem>
                 {
                     new HandgunWeaponItem(){ClassName="HandGunWeaponItem_TacFlash"}
@@ -59,7 +71,7 @@ namespace WastelandA23.Model.Init
 
             var loadout = new Loadout()
             {
-                AssignableItems = new List<AssignableItem> { new AssignableItem() { ClassName = "AssignableItem_Compass" } },
+                AssignedItems = new List<AssignableItem> { new AssignableItem() { ClassName = "AssignableItem_Compass" } },
                 Backpack = backpack,
                 Uniform = uniform,
                 Vest = vest,

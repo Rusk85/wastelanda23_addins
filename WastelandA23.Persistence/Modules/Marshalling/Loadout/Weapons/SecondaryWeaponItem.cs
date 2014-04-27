@@ -1,6 +1,6 @@
 ﻿namespace WastelandA23.Marshalling.Loadout
 {
-    public class SecondaryWeaponItems : AbstractWeaponItem
+    public class SecondaryWeaponItem : AbstractWeaponItem
     {
     }
 }

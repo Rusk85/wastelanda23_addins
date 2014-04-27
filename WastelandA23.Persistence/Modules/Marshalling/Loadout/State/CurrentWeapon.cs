@@ -5,7 +5,7 @@
         //TODO: AbstractWeapon currentWeapon
         public string ClassName { get; set; }
 
-        public CurrentMode currentMode { get; set; }
+        public CurrentMode CurrentMode { get; set; }
 
         public CurrentWeapon()
         {

@@ -18,7 +18,7 @@ namespace WastelandA23.Model.CodeFirstModel
         public virtual Uniform Uniform { get; set; }
         public virtual Vest Vest { get; set; }
 
-        public ICollection<AssignableItem> AssignableItems { get; set; }
+        public ICollection<AssignableItem> AssignedItems { get; set; }
 
         public virtual Player Player { get; set; }
     }

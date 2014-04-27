@@ -331,9 +331,11 @@ namespace WastelandA23.Marshalling
             //https://github.com/AutoMapper/AutoMapper/wiki/Mapping-inheritance
             //http://stackoverflow.com/questions/11264455/automapper-with-base-class-and-different-configuration-options-for-implementatio
             var to = ModelAssembly.GetTypes().Where(t => t.Name == from.GetType().Name);
-            if (to.ToList().Count == 0) { return; }
-            if (to.ToList().Count > 1) { to = to.OrderByDescending(t => t.Namespace.Length); }
-            Mapper.CreateMap(from.GetType(), to.First());
+            if (to.ToList().Count == 1 
+                && from.GetType().Assembly == typeof(Marshaller).Assembly) 
+            { 
+                Mapper.CreateMap(from.GetType(), to.First());
+            }
         }
 
 
@@ -387,6 +389,7 @@ namespace WastelandA23.Marshalling
                 }
                 else
                 {
+                    mapToEFModel(Activator.CreateInstance(elementType));
                     var resultList = dynamicCall("unmarshalFromListToList", elementType, new object[] { from.block });
                     return (T)resultList;
                 }
