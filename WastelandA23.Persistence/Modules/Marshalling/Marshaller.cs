@@ -10,55 +10,53 @@ using AutoMapper;
 
 namespace WastelandA23.Marshalling
 {
-    public class Marshaller
+    public class ListBlock
     {
-
-        public static Assembly ModelAssembly = Assembly.GetAssembly(typeof(WastelandA23.Model.CodeFirstModel.LoadoutContext));
-
-        public class ListBlock
+        public ListBlock()
         {
-            public ListBlock()
-            {
-            }
-
-            public ListBlock(string value)
-            {
-                this.value = value;
-            }
-
-            public ListBlock(List<ListBlock> block)
-            {
-                this.block = block;
-            }
-
-            public void addElement(ListBlock block)
-            {
-                if (this.block == null)
-                {
-                    this.block = new List<ListBlock>();
-                }
-                this.block.Add(block);
-            }
-
-            public bool isEmpty()
-            {
-                return !isValue() && !isArray();
-            }
-
-            public bool isValue()
-            {
-                return value != null;
-            }
-
-            public bool isArray()
-            {
-                return block != null;
-            }
-
-            public string value = null;
-            public List<ListBlock> block = null;
         }
 
+        public ListBlock(string value)
+        {
+            this.value = value;
+        }
+
+        public ListBlock(List<ListBlock> block)
+        {
+            this.block = block;
+        }
+
+        public void addElement(ListBlock block)
+        {
+            if (this.block == null)
+            {
+                this.block = new List<ListBlock>();
+            }
+            this.block.Add(block);
+        }
+
+        public bool isEmpty()
+        {
+            return !isValue() && !isArray();
+        }
+
+        public bool isValue()
+        {
+            return value != null;
+        }
+
+        public bool isArray()
+        {
+            return block != null;
+        }
+
+        public string value = null;
+        public List<ListBlock> block = null;
+    }
+
+    public class Marshaller
+    {
+        public static Assembly ModelAssembly = Assembly.GetAssembly(typeof(WastelandA23.Model.CodeFirstModel.LoadoutContext));
         //static string test = "[[SAVE_COMMAND,76561197964280320],[1.2, 3.4]]";
 
         private static List<string> explodeIfNotEscaped(string str, char blockStart, char blockEnd, char delimiter)
@@ -534,5 +532,19 @@ namespace WastelandA23.Marshalling
             ListBlock block = explodeNested(stringRepresentation);
             return unmarshalFrom<T>(block);
         }
+
+
+        static public string marshalFrom<T>(T source) where T : class
+        {
+            return null;
+        }
+
+
+
+
+
+
+
+
     }
 }
