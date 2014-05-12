@@ -17,7 +17,9 @@ namespace WastelandA23.Marshalling
             strList2 = new List<string>() { "1test", "2test" };
             aStr = "aStr";
             innerTestObj = new innerTestObj();
+            innerTestObjList = new List<innerTestObj>() { new innerTestObj(), new innerTestObj() };
         }
+        public List<innerTestObj> innerTestObjList { get; set; }
         public List<string> strList { get; set; }
         public List<string> strList2 {get; set;}
         public string aStr {get; set;}
@@ -35,20 +37,51 @@ namespace WastelandA23.Marshalling
         public List<string> innerList { get; set; }
     }
 
+
+    // [[["innerStr","innerStr2"],["innerStr","innerStr2"]]]
+    public class testObj2
+    {
+        public testObj2()
+        {
+            innerTestObj = new List<innerTestObj2>() { new innerTestObj2(), new innerTestObj2() };
+        }
+        public List<innerTestObj2> innerTestObj { get; set; }
+    }
+
+
+    public class innerTestObj2
+    {
+        public innerTestObj2()
+        {
+            innerStr = "innerStr";
+            innerStr2 = "innerStr2";
+        }
+
+        public string innerStr { get; set; }
+        public string innerStr2 { get; set; }
+    }
+
+
     public class PrelimReverseMarshaller
     {
 
         private struct TypeCheck
         {
             public bool isScalar;
-            public bool isCollection;
+            public bool isScalarCollection;
+            public bool isObjectCollection;
             public bool isObject;
-            public TypeCheck(bool isScalar,
-                bool isCollection,
-                bool isObject)
+            public TypeCheck
+            (
+                bool isScalar,
+                bool isScalarCollection,
+                bool isObjectCollection,
+                bool isObject
+            )
             {
                 this.isScalar = isScalar;
-                this.isCollection = isCollection;
+                this.isScalarCollection = isScalarCollection;
+                this.isObjectCollection = isObjectCollection;
                 this.isObject = isObject;
             }
         }
@@ -66,27 +99,40 @@ namespace WastelandA23.Marshalling
             props.ForEach(_ => tl.Add(typeCheck(_)));
 
             var scalarProps = tl.Where(_ => _.Item2.isScalar).Select(_ => _.Item1).ToList();
-            var collectionProps = tl.Where(_ => _.Item2.isCollection).Select(_ => _.Item1).ToList();
+            var scalarCollectionProps = tl.Where(_ => _.Item2.isScalarCollection).Select(_ => _.Item1).ToList();
+            var objectCollectionProps = tl.Where(_ => _.Item2.isObjectCollection).Select(_ => _.Item1).ToList();
             var objectProps = tl.Where(_ => _.Item2.isObject).Select(_ => _.Item1).ToList();
 
             scalarProps.ForEach(_ => returnBlock.addElement(marshalFromScalarProperty(_, source)));
-            collectionProps.ForEach(_ => returnBlock.addElement(
+
+            scalarCollectionProps.ForEach(_ => returnBlock.addElement(
                 new ListBlock(marshalFromScalarPropertyList(_, source).ToList())));
+
+            objectCollectionProps.ForEach(_ => returnBlock.addElement(
+                new ListBlock(marshalFromObjectPropertyList(_, source, 
+                    Activator.CreateInstance(_.PropertyType.GetGenericArguments()[0])).ToList())));
+
             objectProps.ForEach(_ => returnBlock.addElement(marshalFromObject(_.GetValue(source))));
+
             return returnBlock;
         }
 
         private static TypeCheck inspectType<T>(T source)
         {
-            bool isType = typeof(T) == typeof(Type);
-            bool isCollection = false;
             bool isScalar = false;
-            isCollection = typeof(IList).IsAssignableFrom(source as Type);
+            bool isScalarCollection = false;
+            bool isObjectCollection = false;
+
+            if (typeof(IList).IsAssignableFrom(source as Type))
+            {
+                Type elementType = (source as Type).GetGenericArguments()[0];
+                isScalarCollection = elementType == typeof(string);
+                isObjectCollection = !isScalarCollection;
+            }
             isScalar = typeof(string) == source as Type;
-            // !false && !true => true && false => false
-            // !false && !false => true && true => true
-            bool isObject = !isScalar && !isCollection;
-            return new TypeCheck(isScalar, isCollection, isObject);
+            bool isObject = !isScalar && !isScalarCollection && !isObjectCollection;
+
+            return new TypeCheck(isScalar, isScalarCollection, isObjectCollection, isObject);
         }
 
         private static ListBlock marshalFromScalarProperty<T>
@@ -103,6 +149,16 @@ namespace WastelandA23.Marshalling
             srcList.ForEach(_ => ret.Add(new ListBlock(_)));
             return ret;
         }
+
+        private static IList<ListBlock> marshalFromObjectPropertyList<T, Te>
+            (PropertyInfo PropertyInfo, T source, Te elemType)
+        {
+            var ret = new List<ListBlock>();
+            var srcList = (PropertyInfo.GetValue(source) as IList).Cast<Te>().ToList();
+            srcList.ForEach(_ => ret.Add(marshalFromObject(_)));
+            return ret;
+        }
+
 
     }
 }
