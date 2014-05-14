@@ -17,4 +17,6 @@ So far marshalling from the game to the data model/database works for the most p
 
 Currently a complete stateful loadout set for a player along with player information such as his/her PlayerUID and profile name is being stored to the data model/database and that loadout set will be reassigned to the player it belongs to in the end.
 
+!!CAUTION!!: Checking out this project you will notice the "app.config" is missing or a default version will be installed when restoring packages from nuget. Since sensitive information is stored in there I did not make it part of this repository. I will provide a working one at some point but for now you will need to create one compatible with the existing EF data model and your own database. Using VS2013's localdb probably is your best bet for quick results. Otherwise any other MSSQLDB should produce result quickly w/o too much fideling. MySQL might proof to be a bit harder but its what this project is running on actually.
+
 
