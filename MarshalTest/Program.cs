@@ -27,7 +27,7 @@ namespace MarshalTest
              //var s = new List<string> { "test", "test2" };
              //var res = PrelimReverseMarshaller.marshalFrom(s);
              //var res = PrelimReverseMarshaller.marshalFromObject(new testObj());
-             var res = PrelimReverseMarshaller.marshalFromObject(new testObj2());
+             var res = PrelimReverseMarshaller.marshalFromObject(new testObj());
 
 
             var i = 0;

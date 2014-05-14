@@ -18,10 +18,15 @@ namespace WastelandA23.Marshalling
             aStr = "aStr";
             innerTestObj = new innerTestObj();
             innerTestObjList = new List<innerTestObj>() { new innerTestObj(), new innerTestObj() };
+            error = -1;
         }
+        [ParamNumber(1)]
         public List<innerTestObj> innerTestObjList { get; set; }
+        [ParamNumber(2)]
+        public int error { get; set; }
         public List<string> strList { get; set; }
         public List<string> strList2 {get; set;}
+        [ParamNumber(0)]
         public string aStr {get; set;}
         public innerTestObj innerTestObj { get; set; }
     }
@@ -31,9 +36,13 @@ namespace WastelandA23.Marshalling
         public innerTestObj()
         {
             innerStr = "innerStr";
+            ignoreStr = "ignoreMe";
             innerList = new List<string> { "innerListElement#1", "innerListElement#2" };
         }
+        [ParamNumber(1)]
         public string innerStr { get; set; }
+        public string ignoreStr { get; set; }
+        [ParamNumber(0)]
         public List<string> innerList { get; set; }
     }
 
@@ -86,6 +95,27 @@ namespace WastelandA23.Marshalling
             }
         }
 
+        private struct PropertyOrder
+        {
+            public PropertyInfo PropertyInfo;
+            public TypeCheck TypeCheck;
+            public ParamNumberAttribute ParamNumber;
+            public int? Order;
+            public PropertyOrder
+            (
+                PropertyInfo PropertyInfo,
+                TypeCheck TypeCheck,
+                ParamNumberAttribute ParamNumber,
+                int? Order
+            )
+            {
+                this.PropertyInfo = PropertyInfo;
+                this.TypeCheck = TypeCheck;
+                this.ParamNumber = ParamNumber;
+                this.Order = Order;
+            }
+        }
+
         public static ListBlock marshalFromObject<T>(T source)
         {
             var returnBlock = new ListBlock();
@@ -94,26 +124,59 @@ namespace WastelandA23.Marshalling
             {
                 return Tuple.Create(pi, inspectType(pi.PropertyType));
             };
+
+            Func<List<Tuple<PropertyInfo, TypeCheck>>, List<PropertyOrder>> sortListByProp = 
+                delegate(List<Tuple<PropertyInfo, TypeCheck>> tpl)
+            {
+                var attrList = tpl.Where(_ => _.Item1.GetCustomAttribute<ParamNumberAttribute>() != null).ToList();
+                var retList = new List<PropertyOrder>();
+                if (attrList.Count > 0)
+                {
+                    attrList.ForEach(_ => retList.Add(new PropertyOrder
+                        (
+                        _.Item1,
+                        _.Item2,
+                        _.Item1.GetCustomAttribute<ParamNumberAttribute>(),
+                        _.Item1.GetCustomAttribute<ParamNumberAttribute>().parameterIndex
+                        )));
+                    retList = retList.OrderBy(_ => _.Order).ToList();
+                }
+                else
+                {
+                    tpl.ForEach(_ => retList.Add(new PropertyOrder(_.Item1, _.Item2, null, null)));
+                }
+                return retList;
+            };
+
             var tl = new List<Tuple<PropertyInfo, TypeCheck>>();
-
             props.ForEach(_ => tl.Add(typeCheck(_)));
+            var orderedProps = sortListByProp(tl);
 
-            var scalarProps = tl.Where(_ => _.Item2.isScalar).Select(_ => _.Item1).ToList();
-            var scalarCollectionProps = tl.Where(_ => _.Item2.isScalarCollection).Select(_ => _.Item1).ToList();
-            var objectCollectionProps = tl.Where(_ => _.Item2.isObjectCollection).Select(_ => _.Item1).ToList();
-            var objectProps = tl.Where(_ => _.Item2.isObject).Select(_ => _.Item1).ToList();
+            foreach (var tpl in orderedProps)
+            {
+                var prop = tpl.PropertyInfo;
+                var type = tpl.TypeCheck;
 
-            scalarProps.ForEach(_ => returnBlock.addElement(marshalFromScalarProperty(_, source)));
-
-            scalarCollectionProps.ForEach(_ => returnBlock.addElement(
-                new ListBlock(marshalFromScalarPropertyList(_, source).ToList())));
-
-            objectCollectionProps.ForEach(_ => returnBlock.addElement(
-                new ListBlock(marshalFromObjectPropertyList(_, source, 
-                    Activator.CreateInstance(_.PropertyType.GetGenericArguments()[0])).ToList())));
-
-            objectProps.ForEach(_ => returnBlock.addElement(marshalFromObject(_.GetValue(source))));
-
+                if (type.isScalar)
+                {
+                    returnBlock.addElement(marshalFromScalarProperty(prop, source));
+                }
+                else if (type.isScalarCollection)
+                {
+                    returnBlock.addElement(new ListBlock(
+                        marshalFromScalarPropertyList(prop, source).ToList()));
+                }
+                else if (type.isObject)
+                {
+                    returnBlock.addElement(marshalFromObject(prop.GetValue(source)));
+                }
+                else if (type.isObjectCollection)
+                {
+                    Type elementType = prop.PropertyType.GetGenericArguments()[0];
+                    returnBlock.addElement(new ListBlock(marshalFromObjectPropertyList(
+                        prop, source, Activator.CreateInstance(elementType)).ToList()));
+                }
+            }
             return returnBlock;
         }
 
@@ -130,8 +193,11 @@ namespace WastelandA23.Marshalling
                 isObjectCollection = !isScalarCollection;
             }
             isScalar = typeof(string) == source as Type;
+            if (!isScalar && (source as Type).IsPrimitive)
+            {
+                throw new NotImplementedException("Marshalling for Type" + (source as Type).FullName + " not supported.");
+            }
             bool isObject = !isScalar && !isScalarCollection && !isObjectCollection;
-
             return new TypeCheck(isScalar, isScalarCollection, isObjectCollection, isObject);
         }
 
