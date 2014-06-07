@@ -72,6 +72,7 @@
     <Compile Include="Modules\Marshalling\Loadout\Containers\AbstractContainer.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Items\AssignableItem.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Items\Item.cs" />
+    <Compile Include="Modules\Marshalling\MissingConverterOutFunctionException.cs" />
     <Compile Include="Modules\Marshalling\ParamNumberAttribute.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Containers\Backpack.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Loadout.cs" />
@@ -91,7 +92,6 @@
     <Compile Include="Modules\Marshalling\Marshaller.cs" />
     <Compile Include="Modules\Marshalling\Player.cs" />
     <Compile Include="Modules\Marshalling\PlayerInfo.cs" />
-    <Compile Include="Modules\Marshalling\PrelimReverseMarshaller.cs" />
     <Compile Include="Modules\Marshalling\Structs\MarshallingStructs.cs" />
     <Compile Include="MySqlClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

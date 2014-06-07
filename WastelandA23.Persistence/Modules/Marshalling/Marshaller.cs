@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Data.Entity;
+using MoreLinq;
 using AutoMapper;
 
 namespace WastelandA23.Marshalling
@@ -18,6 +19,10 @@ namespace WastelandA23.Marshalling
 
         public ListBlock(string value)
         {
+            if (value == null)
+            {
+                isNullStringValue = true;
+            }
             this.value = value;
         }
 
@@ -42,7 +47,7 @@ namespace WastelandA23.Marshalling
 
         public bool isValue()
         {
-            return value != null;
+            return isNullStringValue || value != null;
         }
 
         public bool isArray()
@@ -52,6 +57,8 @@ namespace WastelandA23.Marshalling
 
         public string value = null;
         public List<ListBlock> block = null;
+
+        private bool isNullStringValue = false;
     }
 
     public class Marshaller
@@ -260,16 +267,6 @@ namespace WastelandA23.Marshalling
             }
             return indexMapping.ToDictionary(t => t.Item4, t => Tuple.Create(t.Item1, t.Item2, t.Item3));
         }
-
-        static private string unmarshalFrom(ListBlock from)
-        {
-            if (!from.isValue())
-            {
-                throw new ArgumentException("Failed to marshal, from does not represent a string, and target is a string");
-            }
-            return from.value;
-        }
-
         static private T Cast<T>(Object o)
         {
             return (T)o;
@@ -363,6 +360,15 @@ namespace WastelandA23.Marshalling
             }
         }
 
+
+        static private string unmarshalFrom(ListBlock from)
+        {
+            if (!from.isValue())
+            {
+                throw new ArgumentException("Failed to marshal, from does not represent a string, and target is a string");
+            }
+            return from.value;
+        }
 
         static private IList<string> unmarshalFromStringListToList(IList<ListBlock> from)
         {
@@ -540,7 +546,316 @@ namespace WastelandA23.Marshalling
         }
 
 
+        #region ReverseMarshalling Object -> ListBlock
 
+        private struct TypeCheck
+        {
+            public bool isScalar;
+            public bool isScalarCollection;
+            public bool isObjectCollection;
+            public bool isObject;
+            public TypeCheck
+            (
+                bool isScalar,
+                bool isScalarCollection,
+                bool isObjectCollection,
+                bool isObject
+            )
+            {
+                this.isScalar = isScalar;
+                this.isScalarCollection = isScalarCollection;
+                this.isObjectCollection = isObjectCollection;
+                this.isObject = isObject;
+            }
+        }
+
+
+        private class ConversibleMemberInfo 
+        {
+            public MemberInfo MemberInfo { get; private set; }
+            public bool isFieldInfo { get; private set; }
+            public bool isPropertyInfo { get; private set; }
+            public PropertyInfo PropertyInfo { get; private set; }
+            public FieldInfo FieldInfo { get; private set; }
+            public Func<string, Object> ConverterIn { get; private set; }
+            public Func<Object, string> ConverterOut { get; private set; }
+            public bool hasConverterIn { get; private set; }
+            public bool hasConverterOut { get; private set; }
+
+            public ConversibleMemberInfo (MemberInfo MemberInfo)
+	        {
+                this.MemberInfo = MemberInfo;
+                if (MemberInfo.MemberType == MemberTypes.Property)
+                {
+                    isPropertyInfo = true;
+                    isFieldInfo = false;
+                    PropertyInfo = (PropertyInfo)MemberInfo;
+                }
+                else if (MemberInfo.MemberType == MemberTypes.Field)
+                {
+                    isPropertyInfo = false;
+                    isFieldInfo = true;
+                    FieldInfo = (FieldInfo)MemberInfo;
+                }
+                hasConverterIn = false;
+                hasConverterOut = false;
+	        }
+
+            public ConversibleMemberInfo(MemberInfo MemberInfo,
+                Func<string,Object> ConverterIn,
+                Func<Object,string> ConverterOut) 
+                    : this(MemberInfo)
+            {
+                if (ConverterIn != null)
+                {
+                    this.ConverterIn = ConverterIn;
+                    hasConverterIn = true;
+                }
+                else
+                {
+                    hasConverterIn = false;
+                }
+                if (ConverterOut != null)
+                {
+                    this.ConverterOut = ConverterOut;
+                    hasConverterOut = true;
+                }
+                else
+                {
+                    hasConverterOut = false;
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Creates a ListBlock that reflects the nested hierarchy of an object.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source"></param>
+        /// <returns>ListBlock</returns>
+        public static ListBlock marshalFromObject<T>(T source)
+        {
+            var returnBlock = new ListBlock();
+            PropertyInfo[] props = source.GetType().GetProperties();
+
+            var tl_test = createParamNumberDictionaryWithInheritance(source.GetType());
+            foreach (var tpl in tl_test.OrderBy(_ => _.Key).ToList())
+            {
+                var mi = new ConversibleMemberInfo(tpl.Value.Item1, tpl.Value.Item2, tpl.Value.Item3);
+                var type = inspectType(mi.isPropertyInfo ? mi.PropertyInfo.PropertyType : mi.FieldInfo.FieldType);
+
+                if (type.isScalar)
+                {
+                    returnBlock.addElement(marshalFromScalarMember(mi, source));
+                }
+                else if (type.isScalarCollection)
+                {
+                    returnBlock.addElement(new ListBlock(
+                        marshalFromScalarMemberList(mi, source).ToList()));
+                }
+                else if (type.isObject)
+                {
+                    var value = mi.isPropertyInfo 
+                        ? mi.PropertyInfo.GetValue(source) 
+                        : mi.FieldInfo.GetValue(source);
+                    returnBlock.addElement(marshalFromObject(value));
+                }
+                else if (type.isObjectCollection)
+                {
+                    Type elementType = mi.isPropertyInfo
+                        ? mi.PropertyInfo.PropertyType.GetGenericArguments()[0]
+                        : mi.FieldInfo.FieldType.GetGenericArguments()[0];
+                    returnBlock.addElement(new ListBlock(marshalFromObjectMemberList(
+                        mi, source, Activator.CreateInstance(elementType)).ToList()));
+                }
+            }
+            return returnBlock;
+        }
+
+        private static TypeCheck inspectType<T>(T source)
+        {
+            bool isScalar = false;
+            bool isScalarCollection = false;
+            bool isObjectCollection = false;
+
+            if (typeof(IList).IsAssignableFrom(source as Type))
+            {
+                Type elementType = (source as Type).GetGenericArguments()[0];
+                isScalarCollection = elementType == typeof(string);
+                isObjectCollection = !isScalarCollection;
+            }
+            isScalar = source.GetType().IsPrimitive
+                || source as Type == typeof(string)
+                || source as Type == typeof(String);
+
+            bool isObject = !isScalar && !isScalarCollection && !isObjectCollection;
+            return new TypeCheck(isScalar, isScalarCollection, isObjectCollection, isObject);
+        }
+
+        private static ListBlock marshalFromScalarMember<T>
+            (ConversibleMemberInfo MemberInfo, T source)
+        {
+            var mi = MemberInfo;
+            if (MemberInfo.isPropertyInfo)
+            {
+                try
+                {
+                    // TODO: sort out conversion (interface maybe for external config?)
+                    string value = mi.hasConverterOut
+                        ? mi.ConverterOut(mi.PropertyInfo.GetValue(source))
+                        : mi.PropertyInfo.GetValue(source) as string;
+                    return new ListBlock(value);
+                }
+                catch (Exception)
+                {
+                    if (!mi.hasConverterOut
+                        && mi.PropertyInfo.GetValue(source).GetType() != typeof(string))
+                    {
+                        var t = mi.PropertyInfo.GetValue(source).GetType();
+                        throw new MissingConverterOutFunctionException
+                            (String.Format("Cant marshal type without a conversion function from {0} to string", t.Name));
+                    }
+                    throw;
+                }
+            }
+            else if (MemberInfo.isFieldInfo)
+            {
+                try
+                {
+                    string value = mi.hasConverterOut
+                        ? mi.ConverterOut(mi.FieldInfo.GetValue(source))
+                        : mi.PropertyInfo.GetValue(source) as string;
+                    return new ListBlock(value);
+                }
+                catch (Exception)
+                {
+                    if (!mi.hasConverterOut
+                        && mi.FieldInfo.GetValue(source).GetType() != typeof(string))
+                    {
+                        var t = mi.FieldInfo.GetValue(source).GetType();
+                        throw new MissingConverterOutFunctionException
+                            (String.Format("Cant marshal type without a conversion function from {0} to string", t.Name));
+                    }
+                    throw;
+                }
+            }
+            return null;
+        }
+
+        private static IList<ListBlock> marshalFromScalarMemberList<T>
+            (ConversibleMemberInfo MemberInfo, T source)
+        {
+            var mi = MemberInfo;
+            var retList = new List<string>();
+            var ret = new List<ListBlock>();
+            if (mi.isPropertyInfo)
+            {
+                //TODO: add proper exception handling when missing conversion func
+                if (mi.hasConverterOut)
+                {
+                    var tmpList = mi.PropertyInfo.GetValue(source) as List<Object>;
+                    Func<Object,string> co = mi.ConverterOut;
+                    tmpList.ForEach(_ => retList.Add(co(mi.PropertyInfo.GetValue(source))));
+                }
+                else
+                {
+                    retList = mi.PropertyInfo.GetValue(source) as List<string>;
+                }
+            }
+            else if (mi.isFieldInfo)
+            {
+                if (mi.hasConverterOut)
+                {
+                    var tmpList = mi.FieldInfo.GetValue(source) as List<Object>;
+                    Func<Object,string> co = mi.ConverterOut;
+                    tmpList.ForEach(_ => retList.Add(co(mi.FieldInfo.GetValue(source))));
+                }
+                else
+                {
+                    retList = mi.FieldInfo.GetValue(source) as List<string>;
+                }
+            }
+            else
+            {
+                return null;
+            }
+            retList.ForEach(_ => ret.Add(new ListBlock(_)));
+            return ret;
+        }
+
+        private static IList<ListBlock> marshalFromObjectMemberList<T, Te>
+            (ConversibleMemberInfo MemberInfo, T source, Te elemType)
+        {
+            // check for null
+            var ret = new List<ListBlock>();
+            var mi = MemberInfo;
+            var srcList = 
+                (
+                    mi.isPropertyInfo 
+                    ? mi.PropertyInfo.GetValue(source) as IList 
+                    : mi.FieldInfo.GetValue(source) as IList
+                ).Cast<Te>().ToList();
+            srcList.ForEach(_ => ret.Add(marshalFromObject(_)));
+            return ret;
+        }
+
+
+        public static string marshalFromListBlock(ListBlock ListBlock)
+        {
+            var retStr = String.Empty;
+
+            Func<string, string> w = _ => "\"" + _ + "\"";
+
+            if (ListBlock.isArray())
+            {
+                retStr = "[";
+                int idx = 0;
+                foreach (var lb in ListBlock.block)
+                {
+                    bool hasNext = ListBlock.block.Count > idx + 1;
+                    idx++;
+                    if (hasNext)
+                    {
+                        if (lb.isValue())
+                        {
+                            retStr += w(lb.value) + ",";
+                        }
+                        else if (lb.isArray())
+                        {
+                            retStr += marshalFromListBlock(lb) + ",";
+                        }
+                        else if (lb.isEmpty())
+                        {
+                            // ""
+                            // []
+                        }
+                    }
+                    else
+                    {
+                        if (lb.isArray())
+                        {
+                            retStr += marshalFromListBlock(lb);
+                        }
+                        else if (lb.isValue())
+                        {
+                            retStr += w(lb.value);
+                        }
+                    }
+                }
+                retStr += "]";
+            }
+            else if (ListBlock.isValue())
+            {
+                retStr = w(ListBlock.value);
+            }
+            else if (ListBlock.isEmpty())
+            {
+
+            }
+            return retStr;
+        }
+        #endregion
 
 
 
