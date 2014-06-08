@@ -579,10 +579,32 @@ namespace WastelandA23.Marshalling
             public FieldInfo FieldInfo { get; private set; }
             public Func<string, Object> ConverterIn { get; private set; }
             public Func<Object, string> ConverterOut { get; private set; }
-            public bool hasConverterIn { get; private set; }
-            public bool hasConverterOut { get; private set; }
+            public bool hasConverterIn 
+            { 
+                get 
+                { 
+                    return ConverterIn != null; 
+                } 
+                private set 
+                { 
+                    hasConverterIn = value; 
+                } 
+            }
 
-            public ConversibleMemberInfo (MemberInfo MemberInfo)
+            public bool hasConverterOut 
+            {
+                get 
+                { 
+                    return ConverterOut != null; 
+                } 
+                private  set 
+                {
+                    hasConverterOut = value;
+                } 
+            }
+
+            public ConversibleMemberInfo (MemberInfo MemberInfo, 
+                bool UseDefaultConverter=true)
 	        {
                 this.MemberInfo = MemberInfo;
                 if (MemberInfo.MemberType == MemberTypes.Property)
@@ -597,35 +619,133 @@ namespace WastelandA23.Marshalling
                     isFieldInfo = true;
                     FieldInfo = (FieldInfo)MemberInfo;
                 }
-                hasConverterIn = false;
-                hasConverterOut = false;
+                if (UseDefaultConverter)
+                {
+                    var tc = new TypeConverter();
+                    ConverterIn = tc.GetInputConverter(isPropertyInfo 
+                        ? PropertyInfo.PropertyType 
+                        : FieldInfo.FieldType);
+                    ConverterOut = tc.GetOutputConverter(isPropertyInfo
+                        ? PropertyInfo.PropertyType
+                        : FieldInfo.FieldType);
+                }
+                else
+                {
+                    ConverterIn = null;
+                    ConverterOut = null;
+                }
 	        }
 
-            public ConversibleMemberInfo(MemberInfo MemberInfo,
-                Func<string,Object> ConverterIn,
-                Func<Object,string> ConverterOut) 
-                    : this(MemberInfo)
+        }
+
+        public interface IConversionDictionary
+        {
+            IDictionary<Type, Tuple<Func<Object, string>, Func<string, Object>>> GetConversionDictionary();
+        }
+
+        private class TypeConverter
+        {
+
+            private IDictionary<Type, Tuple<Func<Object, string>, Func<string, Object>>> ConversionDictionary;
+
+            public TypeConverter(IConversionDictionary ConversionDictionary)
             {
-                if (ConverterIn != null)
+                this.ConversionDictionary = ConversionDictionary.GetConversionDictionary();
+            }
+
+            public TypeConverter()
+            {
+                ConversionDictionary = 
+                    new Dictionary<Type, Tuple<Func<Object, string>, Func<string, Object>>>();
+                SetDefaultConverters();
+            }
+
+            private void SetDefaultConverters()
+            {
+                Func<Object, string> outCon;
+                Func<string, Object> inCon;
+                Func<Func<Object,string>,Func<string,Object>,
+                    Tuple<Func<Object,string>,Func<string,Object>>> New = 
+                    delegate(Func<Object,string> oCon, Func<string,Object> iCon)
+                    {
+                        return Tuple.Create(oCon,iCon);
+                    };
+
+                // universal output converter function
+                outCon = i => Convert.ToString(i);
+
+                // int
+                var t = typeof(Int32);
+                inCon = i => Convert.ToInt32(i);
+                ConversionDictionary.Add(t, New(outCon, inCon));
+
+                // datetime
+                t = typeof(DateTime);
+                inCon = i => Convert.ToDateTime(i);
+                ConversionDictionary.Add(t, New(outCon, inCon));
+
+                // bool
+                t = typeof(bool);
+                inCon = _ => Convert.ToBoolean(_);
+                ConversionDictionary.Add(t, New(outCon, inCon));
+
+                // string
+                t = typeof(string);
+                inCon = _ => _;
+                ConversionDictionary.Add(t, New(outCon, inCon));
+            }
+
+
+            public Func<string, Object> GetInputConverter(Type inputType)
+            {
+                Tuple<Func<Object,string>,Func<string,Object>> retVal;
+                if (ConversionDictionary.TryGetValue(inputType, out retVal))
                 {
-                    this.ConverterIn = ConverterIn;
-                    hasConverterIn = true;
+                    if (retVal.Item2 != null)
+                    {
+                        return retVal.Item2;
+                    }
                 }
-                else
+                return null;
+            }
+
+            public Func<Object, string> GetOutputConverter(Type outputType)
+            {
+                Tuple<Func<Object, string>, Func<string, Object>> retVal;
+                if (ConversionDictionary.TryGetValue(outputType, out retVal))
                 {
-                    hasConverterIn = false;
+                    if (retVal.Item1 != null)
+                    {
+                        return retVal.Item1;
+                    }
                 }
-                if (ConverterOut != null)
-                {
-                    this.ConverterOut = ConverterOut;
-                    hasConverterOut = true;
-                }
-                else
-                {
-                    hasConverterOut = false;
-                }
+                return null;
             }
         }
+
+        private static class PrimitiveTypes
+        {
+            private static HashSet<Type> primitiveTypes;
+
+            static PrimitiveTypes()
+            {
+                primitiveTypes = new HashSet<Type> 
+                { 
+                    typeof(String), 
+                    typeof(Int16),
+                    typeof(Int32),
+                    typeof(Int64),
+                };
+            }
+
+            public static bool IsPrimitive(Type Type)
+            {
+                return Type.IsPrimitive 
+                    || primitiveTypes.Any(_ => _ == Type);
+            }
+
+        }
+
 
 
         /// <summary>
@@ -642,8 +762,8 @@ namespace WastelandA23.Marshalling
             var tl_test = createParamNumberDictionaryWithInheritance(source.GetType());
             foreach (var tpl in tl_test.OrderBy(_ => _.Key).ToList())
             {
-                var mi = new ConversibleMemberInfo(tpl.Value.Item1, tpl.Value.Item2, tpl.Value.Item3);
-                var type = inspectType(mi.isPropertyInfo ? mi.PropertyInfo.PropertyType : mi.FieldInfo.FieldType);
+                var mi = new ConversibleMemberInfo(tpl.Value.Item1);
+                var type = inspectType((mi.isPropertyInfo ? mi.PropertyInfo.PropertyType : mi.FieldInfo.FieldType), mi);
 
                 if (type.isScalar)
                 {
@@ -673,7 +793,8 @@ namespace WastelandA23.Marshalling
             return returnBlock;
         }
 
-        private static TypeCheck inspectType<T>(T source)
+        private static TypeCheck inspectType<T>(T source, 
+            ConversibleMemberInfo MemberInfo)
         {
             bool isScalar = false;
             bool isScalarCollection = false;
@@ -685,10 +806,17 @@ namespace WastelandA23.Marshalling
                 isScalarCollection = elementType == typeof(string);
                 isObjectCollection = !isScalarCollection;
             }
-            isScalar = source.GetType().IsPrimitive
-                || source as Type == typeof(string)
-                || source as Type == typeof(String);
+            //isScalar = source.GetType().IsPrimitive
+            //    || source as Type == typeof(string)
+            //    || source as Type == typeof(String);
+            isScalar = PrimitiveTypes.IsPrimitive(source as Type);
 
+            if (!isScalar && MemberInfo.hasConverterOut)
+            {
+                isScalar = true; // we can handle this as a scalar 
+            }
+
+            // infinite recursion for Non-User-Types w/o an assigned Converter that are not primitives
             bool isObject = !isScalar && !isScalarCollection && !isObjectCollection;
             return new TypeCheck(isScalar, isScalarCollection, isObjectCollection, isObject);
         }
@@ -713,7 +841,7 @@ namespace WastelandA23.Marshalling
                         && mi.PropertyInfo.GetValue(source).GetType() != typeof(string))
                     {
                         var t = mi.PropertyInfo.GetValue(source).GetType();
-                        throw new MissingConverterOutFunctionException
+                        throw new MissingOutputConverterFunctionException
                             (String.Format("Cant marshal type without a conversion function from {0} to string", t.Name));
                     }
                     throw;
@@ -734,7 +862,7 @@ namespace WastelandA23.Marshalling
                         && mi.FieldInfo.GetValue(source).GetType() != typeof(string))
                     {
                         var t = mi.FieldInfo.GetValue(source).GetType();
-                        throw new MissingConverterOutFunctionException
+                        throw new MissingOutputConverterFunctionException
                             (String.Format("Cant marshal type without a conversion function from {0} to string", t.Name));
                     }
                     throw;

@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace WastelandA23.Marshalling
 {
-    public class MissingConverterOutFunctionException : Exception
+    public class MissingOutputConverterFunctionException : Exception
     {
-        public MissingConverterOutFunctionException(string Message) : base(Message)
+        public MissingOutputConverterFunctionException(string Message) : base(Message)
         {
 
         }

@@ -29,18 +29,26 @@ namespace MarshalTest
             innerTestObjList = new List<innerTestObj>() { new innerTestObj(), new innerTestObj() };
             baseStr = "baseStr";
             convertMe = 10;
+            time = DateTime.Now;
+            imaBool = true;
         }
-        [ParamNumber(3)]
+        [ParamNumber(6)]
         public List<innerTestObj> innerTestObjList { get; set; }
-        [ParamNumber(2)]
+        [ParamNumber(5)]
         public List<string> strList { get; set; }
         public List<string> strList2 { get; set; }
-        [ParamNumber(1)]
+        [ParamNumber(4)]
         public string aStr { get; set; }
         public innerTestObj innerTestObj { get; set; }
         public override string baseStr { get; set; }
-        [ParamNumber(4)]
+        [ParamNumber(2)]
         public int convertMe { get; set; }
+
+        [ParamNumber(1)]
+        public DateTime time { get; set; }
+
+        [ParamNumber(3)]
+        public bool imaBool { get; set; }
 
     }
 
