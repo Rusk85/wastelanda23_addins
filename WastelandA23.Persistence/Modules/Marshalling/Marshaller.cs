@@ -485,22 +485,22 @@ namespace WastelandA23.Marshalling
             {
                 var key = pair.Key;
                 var value = pair.Value;
-                var memberInfo = value.Item1;
-                var converter = value.Item2;
+                var MemberInfo = new ConversibleMemberInfo(value.Item1);
+                var converter = MemberInfo.ConverterIn;
                 var item = from[key];
                 Action<Object, Object> setFunc = null;
                 Type type = null;
 
-                if (memberInfo is FieldInfo)
+                if (MemberInfo.isFieldInfo)
                 {
-                    var field = memberInfo as FieldInfo;
+                    var field = MemberInfo.FieldInfo;
                     setFunc = field.SetValue;
                     type = field.FieldType;
                 }
 
-                if (memberInfo is PropertyInfo)
+                if (MemberInfo.isPropertyInfo)
                 {
-                    var property = memberInfo as PropertyInfo;
+                    var property = MemberInfo.PropertyInfo;
                     setFunc = property.SetValue;
                     type = property.PropertyType;
                 }
@@ -510,11 +510,9 @@ namespace WastelandA23.Marshalling
                 //direct assignment
                 if (item.isValue())
                 {
-                    Dictionary<Type, Func<string, Object>> bla = new Dictionary<Type, Func<string, Object>> {
-                        {typeof(int), (s) => ((Object)Convert.ToInt32(s))}
-                    };
-                    if (converter == null) { bla.TryGetValue(type, out converter); };
-                    newValue = (converter == null) ? (item.value) : (converter(item.value));
+                    newValue = MemberInfo.hasConverterIn 
+                        ? MemberInfo.ConverterIn(item.value) 
+                        : item.value;
                 }
                 else
                 {
@@ -621,11 +619,10 @@ namespace WastelandA23.Marshalling
                 }
                 if (UseDefaultConverter)
                 {
-                    var tc = new TypeConverter();
-                    ConverterIn = tc.GetInputConverter(isPropertyInfo 
+                    ConverterIn = TypeConverter.GetInputConverter(isPropertyInfo 
                         ? PropertyInfo.PropertyType 
                         : FieldInfo.FieldType);
-                    ConverterOut = tc.GetOutputConverter(isPropertyInfo
+                    ConverterOut = TypeConverter.GetOutputConverter(isPropertyInfo
                         ? PropertyInfo.PropertyType
                         : FieldInfo.FieldType);
                 }
@@ -643,24 +640,24 @@ namespace WastelandA23.Marshalling
             IDictionary<Type, Tuple<Func<Object, string>, Func<string, Object>>> GetConversionDictionary();
         }
 
-        private class TypeConverter
+        public static class TypeConverter
         {
 
-            private IDictionary<Type, Tuple<Func<Object, string>, Func<string, Object>>> ConversionDictionary;
+            private static IDictionary<Type, Tuple<Func<Object, string>, Func<string, Object>>> ConversionDictionary;
 
-            public TypeConverter(IConversionDictionary ConversionDictionary)
-            {
-                this.ConversionDictionary = ConversionDictionary.GetConversionDictionary();
-            }
-
-            public TypeConverter()
+            static TypeConverter()
             {
                 ConversionDictionary = 
-                    new Dictionary<Type, Tuple<Func<Object, string>, Func<string, Object>>>();
+                    new Dictionary
+                        <
+                            Type,
+                            Tuple<Func<Object, string>,
+                            Func<string, Object>
+                        >>();
                 SetDefaultConverters();
             }
 
-            private void SetDefaultConverters()
+            private static void SetDefaultConverters()
             {
                 Func<Object, string> outCon;
                 Func<string, Object> inCon;
@@ -695,8 +692,13 @@ namespace WastelandA23.Marshalling
                 ConversionDictionary.Add(t, New(outCon, inCon));
             }
 
+            public static void SetConverters(IConversionDictionary ConversionDictionary)
+            {
+                TypeConverter.ConversionDictionary = ConversionDictionary.GetConversionDictionary();
+            }
 
-            public Func<string, Object> GetInputConverter(Type inputType)
+
+            public static Func<string, Object> GetInputConverter(Type inputType)
             {
                 Tuple<Func<Object,string>,Func<string,Object>> retVal;
                 if (ConversionDictionary.TryGetValue(inputType, out retVal))
@@ -709,7 +711,7 @@ namespace WastelandA23.Marshalling
                 return null;
             }
 
-            public Func<Object, string> GetOutputConverter(Type outputType)
+            public static Func<Object, string> GetOutputConverter(Type outputType)
             {
                 Tuple<Func<Object, string>, Func<string, Object>> retVal;
                 if (ConversionDictionary.TryGetValue(outputType, out retVal))
@@ -803,12 +805,9 @@ namespace WastelandA23.Marshalling
             if (typeof(IList).IsAssignableFrom(source as Type))
             {
                 Type elementType = (source as Type).GetGenericArguments()[0];
-                isScalarCollection = elementType == typeof(string);
+                isScalarCollection = PrimitiveTypes.IsPrimitive(elementType);
                 isObjectCollection = !isScalarCollection;
             }
-            //isScalar = source.GetType().IsPrimitive
-            //    || source as Type == typeof(string)
-            //    || source as Type == typeof(String);
             isScalar = PrimitiveTypes.IsPrimitive(source as Type);
 
             if (!isScalar && MemberInfo.hasConverterOut)
@@ -818,6 +817,15 @@ namespace WastelandA23.Marshalling
 
             // infinite recursion for Non-User-Types w/o an assigned Converter that are not primitives
             bool isObject = !isScalar && !isScalarCollection && !isObjectCollection;
+            var checkList = new List<bool> { isObject, isScalar, isScalarCollection, isObjectCollection };
+            if (checkList.Where(_ => _ == true).Count() > 1)
+            {
+                throw new UndefinedMarshallingStateException(
+                    String.Format(
+                        "Processed Type {0} has ambiguous marshalling type. It may only resolve to a singular type.",
+                        source as Type
+                    ));
+            }
             return new TypeCheck(isScalar, isScalarCollection, isObjectCollection, isObject);
         }
 
@@ -838,13 +846,16 @@ namespace WastelandA23.Marshalling
                 catch (Exception)
                 {
                     if (!mi.hasConverterOut
-                        && mi.PropertyInfo.GetValue(source).GetType() != typeof(string))
+                        && mi.PropertyInfo.PropertyType != typeof(string))
                     {
                         var t = mi.PropertyInfo.GetValue(source).GetType();
                         throw new MissingOutputConverterFunctionException
                             (String.Format("Cant marshal type without a conversion function from {0} to string", t.Name));
                     }
-                    throw;
+                    else
+                    {
+                        throw;
+                    }
                 }
             }
             else if (MemberInfo.isFieldInfo)
@@ -859,16 +870,26 @@ namespace WastelandA23.Marshalling
                 catch (Exception)
                 {
                     if (!mi.hasConverterOut
-                        && mi.FieldInfo.GetValue(source).GetType() != typeof(string))
+                        && mi.FieldInfo.FieldType != typeof(string))
                     {
                         var t = mi.FieldInfo.GetValue(source).GetType();
                         throw new MissingOutputConverterFunctionException
                             (String.Format("Cant marshal type without a conversion function from {0} to string", t.Name));
                     }
-                    throw;
+                    else
+                    {
+                        throw;
+                    }
                 }
             }
             return null;
+        }
+
+        private static ListBlock marshalFromScalar<T>(T Scalar)
+        {
+            var converter =
+                TypeConverter.GetOutputConverter(Scalar.GetType());
+            return new ListBlock(converter(Scalar));
         }
 
         private static IList<ListBlock> marshalFromScalarMemberList<T>
@@ -880,28 +901,29 @@ namespace WastelandA23.Marshalling
             if (mi.isPropertyInfo)
             {
                 //TODO: add proper exception handling when missing conversion func
-                if (mi.hasConverterOut)
-                {
-                    var tmpList = mi.PropertyInfo.GetValue(source) as List<Object>;
-                    Func<Object,string> co = mi.ConverterOut;
-                    tmpList.ForEach(_ => retList.Add(co(mi.PropertyInfo.GetValue(source))));
-                }
-                else
+                Type elementType = mi.PropertyInfo.PropertyType.GetGenericArguments()[0];
+                if (elementType == typeof(string))
                 {
                     retList = mi.PropertyInfo.GetValue(source) as List<string>;
                 }
+                else
+                {
+                    return marshalFromScalarMemberList(
+                        mi, source, Activator.CreateInstance(elementType)).ToList();
+                }
+
             }
             else if (mi.isFieldInfo)
             {
-                if (mi.hasConverterOut)
+                Type elementType = mi.FieldInfo.FieldType.GetGenericArguments()[0];
+                if (elementType == typeof(string))
                 {
-                    var tmpList = mi.FieldInfo.GetValue(source) as List<Object>;
-                    Func<Object,string> co = mi.ConverterOut;
-                    tmpList.ForEach(_ => retList.Add(co(mi.FieldInfo.GetValue(source))));
+                    retList = mi.FieldInfo.GetValue(source) as List<string>;
                 }
                 else
                 {
-                    retList = mi.FieldInfo.GetValue(source) as List<string>;
+                    return marshalFromScalarMemberList(
+                        mi, source, Activator.CreateInstance(elementType)).ToList();
                 }
             }
             else
@@ -909,6 +931,22 @@ namespace WastelandA23.Marshalling
                 return null;
             }
             retList.ForEach(_ => ret.Add(new ListBlock(_)));
+            return ret;
+        }
+
+        private static IList<ListBlock> marshalFromScalarMemberList<T, Te>
+            (ConversibleMemberInfo MemberInfo, T source, Te elemType)
+        {
+            var ret = new List<ListBlock>();
+            var mi = MemberInfo;
+            var srcList =
+                 (
+                     mi.isPropertyInfo
+                     ? mi.PropertyInfo.GetValue(source) as IList
+                     : mi.FieldInfo.GetValue(source) as IList
+                 ).Cast<Te>().ToList();
+            
+            srcList.ForEach(_ => ret.Add(marshalFromScalar(_)));
             return ret;
         }
 

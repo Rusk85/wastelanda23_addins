@@ -68,11 +68,10 @@
     <Compile Include="Modules\Marshalling\Command.cs" />
     <Compile Include="Modules\Marshalling\DerivedTypeAttribute.cs" />
     <Compile Include="Modules\Marshalling\IgnoredMemberAttribute.cs" />
-    <Compile Include="Modules\Marshalling\InvalidSQFTypeException.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Containers\AbstractContainer.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Items\AssignableItem.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Items\Item.cs" />
-    <Compile Include="Modules\Marshalling\MissingConverterOutFunctionException.cs" />
+    <Compile Include="Modules\Marshalling\MarshallingException.cs" />
     <Compile Include="Modules\Marshalling\ParamNumberAttribute.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Containers\Backpack.cs" />
     <Compile Include="Modules\Marshalling\Loadout\Loadout.cs" />
