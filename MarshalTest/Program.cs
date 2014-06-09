@@ -14,7 +14,6 @@ namespace MarshalTest
 {
     public abstract class baseTestObj
     {
-        [ParamNumber(0)]
         public abstract string baseStr { get; set; }
     }
 
@@ -25,21 +24,21 @@ namespace MarshalTest
             strList = new List<string>();
             strList2 = new List<string>() { "1test", "2test" };
             aStr = "aStr";
-            innerTestObj = new innerTestObj();
-            innerTestObjList = new List<innerTestObj>() { new innerTestObj(), new innerTestObj() };
+            innerTestObj = new innerTestClass();
+            innerTestObjList = new List<innerTestClass>() { new innerTestClass(), new innerTestClass() };
             baseStr = "baseStr";
             convertMe = new List<int> { 10, 100, 45 };
             time = DateTime.Now;
             imaBool = true;
         }
         [ParamNumber(6)]
-        public List<innerTestObj> innerTestObjList { get; set; }
+        public List<innerTestClass> innerTestObjList { get; set; }
         [ParamNumber(5)]
         public List<string> strList { get; set; }
         public List<string> strList2 { get; set; }
         [ParamNumber(4)]
         public string aStr { get; set; }
-        public innerTestObj innerTestObj { get; set; }
+        public innerTestClass innerTestObj { get; set; }
         public override string baseStr { get; set; }
         [ParamNumber(2)]
         public List<int> convertMe { get; set; }
@@ -52,18 +51,32 @@ namespace MarshalTest
 
     }
 
-    public class innerTestObj
+    public class innerTestClass : innerBaseTestClass
     {
-        public innerTestObj()
+        public innerTestClass()
         {
             innerStr = "innerStr";
-            innerList = null;
+            innerList = new List<string> { "innerListElem1", "innerListElem2" };
+            ignoreStr = "ignoreStr";
         }
-        [ParamNumber(1)]
         public string innerStr { get; set; }
-        [ParamNumber(0)]
         public string ignoreStr { get; set; }
         public List<string> innerList { get; set; }
+    }
+
+    [DerivedType]
+    public class innerBaseTestClass
+    {
+        public innerBaseTestClass()
+        {
+            innerBaseInt = 44;
+            innerBaseStr = "innerBaseStr";
+            dateTime = new List<DateTime> { DateTime.Now, DateTime.Now.AddDays(10) };
+        }
+
+        public string innerBaseStr { get; set; }
+        public List<DateTime> dateTime { get; set; }
+        public int innerBaseInt { get; set; }
     }
 
 
@@ -123,9 +136,12 @@ namespace MarshalTest
             //var res = PrelimReverseMarshaller.marshalFromObject(new testObj());
             Player player = new Player();
             player = Marshaller.unmarshalFrom<Player>(test_target);
+            var res2 = Marshaller.marshalFromObject(player);
+            var resStr2 = Marshaller.marshalFromListBlock(res2);
             var res = Marshaller.marshalFromObject(new testObj());
             var resStr = Marshaller.marshalFromListBlock(res);
             Debug.WriteLine(resStr);
+            Debug.WriteLine(resStr2);
 
 
             var i = 0;

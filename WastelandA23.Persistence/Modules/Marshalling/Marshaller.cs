@@ -442,8 +442,7 @@ namespace WastelandA23.Marshalling
                     {
                         matchedType = findAllDerivedTypes<T>().Where(t => t.Name == from.block[0].value).First();
                     }
-
-                    if (typeof(T).BaseType.GetCustomAttribute(typeof(DerivedTypeAttribute)) != null)
+                    else if (typeof(T).BaseType.GetCustomAttribute(typeof(DerivedTypeAttribute)) != null)
                     {
                         matchedType = findAllDerivedTypes(typeof(T).BaseType).Where(t => t.Name == from.block[0].value).First();
                     }
@@ -633,6 +632,7 @@ namespace WastelandA23.Marshalling
                 }
 	        }
 
+
         }
 
         public interface IConversionDictionary
@@ -750,53 +750,8 @@ namespace WastelandA23.Marshalling
 
 
 
-        /// <summary>
-        /// Creates a ListBlock that reflects the nested hierarchy of an object.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="source"></param>
-        /// <returns>ListBlock</returns>
-        public static ListBlock marshalFromObject<T>(T source)
-        {
-            var returnBlock = new ListBlock();
-            PropertyInfo[] props = source.GetType().GetProperties();
-
-            var tl_test = createParamNumberDictionaryWithInheritance(source.GetType());
-            foreach (var tpl in tl_test.OrderBy(_ => _.Key).ToList())
-            {
-                var mi = new ConversibleMemberInfo(tpl.Value.Item1);
-                var type = inspectType((mi.isPropertyInfo ? mi.PropertyInfo.PropertyType : mi.FieldInfo.FieldType), mi);
-
-                if (type.isScalar)
-                {
-                    returnBlock.addElement(marshalFromScalarMember(mi, source));
-                }
-                else if (type.isScalarCollection)
-                {
-                    returnBlock.addElement(new ListBlock(
-                        marshalFromScalarMemberList(mi, source).ToList()));
-                }
-                else if (type.isObject)
-                {
-                    var value = mi.isPropertyInfo 
-                        ? mi.PropertyInfo.GetValue(source) 
-                        : mi.FieldInfo.GetValue(source);
-                    returnBlock.addElement(marshalFromObject(value));
-                }
-                else if (type.isObjectCollection)
-                {
-                    Type elementType = mi.isPropertyInfo
-                        ? mi.PropertyInfo.PropertyType.GetGenericArguments()[0]
-                        : mi.FieldInfo.FieldType.GetGenericArguments()[0];
-                    returnBlock.addElement(new ListBlock(marshalFromObjectMemberList(
-                        mi, source, Activator.CreateInstance(elementType)).ToList()));
-                }
-            }
-            return returnBlock;
-        }
-
-        private static TypeCheck inspectType<T>(T source, 
-            ConversibleMemberInfo MemberInfo)
+        private static TypeCheck inspectType<T>(T source,
+                    ConversibleMemberInfo MemberInfo)
         {
             bool isScalar = false;
             bool isScalarCollection = false;
@@ -829,6 +784,94 @@ namespace WastelandA23.Marshalling
             return new TypeCheck(isScalar, isScalarCollection, isObjectCollection, isObject);
         }
 
+        /// <summary>
+        /// Creates a ListBlock that reflects the nested hierarchy of an object.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source"></param>
+        /// <returns>ListBlock</returns>
+        public static ListBlock marshalFromObject<T>(T source)
+        {
+            var returnBlock = new ListBlock();
+
+            var tl_test = createParamNumberDictionaryWithInheritance(source.GetType());
+            
+            bool hasDerivedType = source.GetType().GetCustomAttribute<DerivedTypeAttribute>() != null
+                || source.GetType().BaseType.GetCustomAttribute<DerivedTypeAttribute>() != null;
+            string typeName = hasDerivedType ? source.GetType().Name : null;
+            //var wrapper = hasDerivedType ? new ListBlock(new List<ListBlock>{new ListBlock( typeName )}) : null;
+            if (hasDerivedType)
+            {
+                returnBlock.addElement(new ListBlock(typeName));
+            }
+            var inner = hasDerivedType ? new ListBlock() : null;
+
+            foreach (var tpl in tl_test.OrderBy(_ => _.Key).ToList())
+            {
+                var mi = new ConversibleMemberInfo(tpl.Value.Item1);
+                var type = inspectType((mi.isPropertyInfo ? mi.PropertyInfo.PropertyType : mi.FieldInfo.FieldType), mi);
+
+                if (type.isScalar)
+                {
+                    if (!hasDerivedType)
+                    {
+                        returnBlock.addElement(marshalFromScalarMember(mi, source));
+                    }
+                    else
+                    {
+                        inner.addElement(marshalFromScalarMember(mi, source));
+                    }
+                }
+                else if (type.isScalarCollection)
+                {
+                    if (!hasDerivedType)
+                    {
+                        returnBlock.addElement(new ListBlock(
+                            marshalFromScalarMemberList(mi, source).ToList()));
+                    }
+                    else
+                    {
+                        inner.addElement(new ListBlock(
+                            marshalFromScalarMemberList(mi, source).ToList()));
+                    }
+                }
+                else if (type.isObject)
+                {
+                    var value = mi.isPropertyInfo 
+                        ? mi.PropertyInfo.GetValue(source) 
+                        : mi.FieldInfo.GetValue(source);
+                    if (!hasDerivedType)
+                    {
+                        returnBlock.addElement(marshalFromObject(value));
+                    }
+                    else
+                    {
+                        inner.addElement(marshalFromObject(value));
+                    }
+                }
+                else if (type.isObjectCollection)
+                {
+                    Type elementType = mi.isPropertyInfo
+                        ? mi.PropertyInfo.PropertyType.GetGenericArguments()[0]
+                        : mi.FieldInfo.FieldType.GetGenericArguments()[0];
+                    if (!hasDerivedType)
+                    {
+                        returnBlock.addElement(new ListBlock(marshalFromObjectMemberList(
+                            mi, source, Activator.CreateInstance(elementType)).ToList()));
+                    }
+                    else
+                    {
+                        inner.addElement(new ListBlock(marshalFromObjectMemberList(
+                            mi, source, Activator.CreateInstance(elementType)).ToList()));
+                    }
+                }
+            }
+            if (hasDerivedType)
+            {
+                returnBlock.addElement(inner);
+            }
+            return returnBlock;
+        }
         private static ListBlock marshalFromScalarMember<T>
             (ConversibleMemberInfo MemberInfo, T source)
         {

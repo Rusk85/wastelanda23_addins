@@ -91,7 +91,6 @@
     <Compile Include="Modules\Marshalling\Marshaller.cs" />
     <Compile Include="Modules\Marshalling\Player.cs" />
     <Compile Include="Modules\Marshalling\PlayerInfo.cs" />
-    <Compile Include="Modules\Marshalling\Structs\MarshallingStructs.cs" />
     <Compile Include="MySqlClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
