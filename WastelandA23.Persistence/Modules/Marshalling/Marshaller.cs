@@ -760,7 +760,8 @@ namespace WastelandA23.Marshalling
             if (typeof(IList).IsAssignableFrom(source as Type))
             {
                 Type elementType = (source as Type).GetGenericArguments()[0];
-                isScalarCollection = PrimitiveTypes.IsPrimitive(elementType);
+                isScalarCollection = PrimitiveTypes.IsPrimitive(elementType) 
+                    || TypeConverter.GetOutputConverter(elementType) != null;
                 isObjectCollection = !isScalarCollection;
             }
             isScalar = PrimitiveTypes.IsPrimitive(source as Type);
@@ -798,13 +799,12 @@ namespace WastelandA23.Marshalling
             
             bool hasDerivedType = source.GetType().GetCustomAttribute<DerivedTypeAttribute>() != null
                 || source.GetType().BaseType.GetCustomAttribute<DerivedTypeAttribute>() != null;
-            string typeName = hasDerivedType ? source.GetType().Name : null;
-            //var wrapper = hasDerivedType ? new ListBlock(new List<ListBlock>{new ListBlock( typeName )}) : null;
+            ListBlock inner = null;
             if (hasDerivedType)
             {
-                returnBlock.addElement(new ListBlock(typeName));
+                returnBlock.addElement(new ListBlock(source.GetType().Name));
+                inner = new ListBlock();
             }
-            var inner = hasDerivedType ? new ListBlock() : null;
 
             foreach (var tpl in tl_test.OrderBy(_ => _.Key).ToList())
             {
