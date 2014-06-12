@@ -14,9 +14,9 @@ namespace WastelandA23.Marshalling
         }
     }
 
-    public class UndefinedMarshallingStateException : MarshallingException
+    public class AmbiguousMarshallingTypeException : MarshallingException
     {
-        public UndefinedMarshallingStateException(string Message) : base(Message)
+        public AmbiguousMarshallingTypeException(string Message) : base(Message)
         {
 
         }

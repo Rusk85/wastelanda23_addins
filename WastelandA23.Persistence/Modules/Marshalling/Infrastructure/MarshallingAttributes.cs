@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace WastelandA23.Marshalling
 {
     [AttributeUsageAttribute(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = true,
-    Inherited = true)]
+   Inherited = true)]
     public sealed class ParamNumberAttribute : Attribute
     {
         public int parameterIndex { get; set; }
@@ -32,4 +36,13 @@ namespace WastelandA23.Marshalling
             converterFuncOut = converterOut;
         }
     }
+
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false,
+    Inherited = false)]
+    public sealed class DerivedTypeAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property,
+       AllowMultiple = false, Inherited = false)]
+    public sealed class IgnoredMemberAttribute : Attribute { }
+
 }

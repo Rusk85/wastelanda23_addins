@@ -25,7 +25,7 @@ namespace WastelandA23.Model.Init
 
         protected override void Seed(LoadoutContext context)
         {
-
+            return;
             var playerInfo = new PlayerInfo() { Name = "Rusk", UID = "100" };
             var currentWpn = new CurrentWeapon() { ClassName = "CurrWpn", CurrentMode = new CurrentMode() { Mode = "FullAuto" } };
             var backpack = new Backpack() { ClassName = "Backpack", Items = new List<Item> 

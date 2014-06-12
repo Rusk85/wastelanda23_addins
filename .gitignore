@@ -84,5 +84,4 @@ _ReSharper.*
 /Testing
 Release/
 Debug/
-App.Config
 packages/

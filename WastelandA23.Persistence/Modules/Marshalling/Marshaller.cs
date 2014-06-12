@@ -11,59 +11,62 @@ using AutoMapper;
 
 namespace WastelandA23.Marshalling
 {
-    public class ListBlock
-    {
-        public ListBlock()
-        {
-        }
-
-        public ListBlock(string value)
-        {
-            if (value == null)
-            {
-                isNullStringValue = true;
-            }
-            this.value = value;
-        }
-
-        public ListBlock(List<ListBlock> block)
-        {
-            this.block = block;
-        }
-
-        public void addElement(ListBlock block)
-        {
-            if (this.block == null)
-            {
-                this.block = new List<ListBlock>();
-            }
-            this.block.Add(block);
-        }
-
-        public bool isEmpty()
-        {
-            return !isValue() && !isArray();
-        }
-
-        public bool isValue()
-        {
-            return isNullStringValue || value != null;
-        }
-
-        public bool isArray()
-        {
-            return block != null;
-        }
-
-        public string value = null;
-        public List<ListBlock> block = null;
-
-        private bool isNullStringValue = false;
-    }
-
     public class Marshaller
     {
+
+        #region Marshalling -> Infrastructure and Helpers
+        public class ListBlock
+        {
+            public ListBlock()
+            {
+            }
+
+            public ListBlock(string value)
+            {
+                if (value == null)
+                {
+                    isNullStringValue = true;
+                }
+                this.value = value;
+            }
+
+            public ListBlock(List<ListBlock> block)
+            {
+                this.block = block;
+            }
+
+            public void addElement(ListBlock block)
+            {
+                if (this.block == null)
+                {
+                    this.block = new List<ListBlock>();
+                }
+                this.block.Add(block);
+            }
+
+            public bool isEmpty()
+            {
+                return !isValue() && !isArray();
+            }
+
+            public bool isValue()
+            {
+                return isNullStringValue || value != null;
+            }
+
+            public bool isArray()
+            {
+                return block != null;
+            }
+
+            public string value = null;
+            public List<ListBlock> block = null;
+
+            private bool isNullStringValue = false;
+        }
+
         public static Assembly ModelAssembly = Assembly.GetAssembly(typeof(WastelandA23.Model.CodeFirstModel.LoadoutContext));
+        public static WastelandA23.Model.CodeFirstModel.Player destination = new Model.CodeFirstModel.Player();
         //static string test = "[[SAVE_COMMAND,76561197964280320],[1.2, 3.4]]";
 
         private static List<string> explodeIfNotEscaped(string str, char blockStart, char blockEnd, char delimiter)
@@ -323,7 +326,8 @@ namespace WastelandA23.Marshalling
         static private void mapToEFModel<From, To>(From from, To to, List<Tuple<Type,Type>> derivedTypes)
         {
             var maps = Mapper.GetAllTypeMaps();
-            var tgtTypeMap = maps.ToList().Where(_ => _.SourceType == from.GetType()).First();
+            var tgtTypeMap = maps.ToList().Where(_ => _.SourceType == from.GetType()).FirstOrDefault();
+            if (tgtTypeMap == null) { return; }
             derivedTypes = derivedTypes.Where(_ => 
                 !tgtTypeMap.IncludedDerivedTypes.Select(tm => tm.SourceType).Contains(_.Item1)).ToList();
             if (derivedTypes.Count == 0) { return; }
@@ -332,11 +336,14 @@ namespace WastelandA23.Marshalling
 
         static private void mapToEFModel<From>(From from)
         {
+            return;
             var to = ModelAssembly.GetTypes().Where(t => t.Name == from.GetType().Name);
             if (to.ToList().Count == 1 
                 && from.GetType().Assembly == typeof(Marshaller).Assembly) 
             {
                 Mapper.CreateMap(from.GetType(), to.First());
+                // create reverse map
+                Mapper.CreateMap(to.First(), from.GetType());
                 var derivedTypesFrom = findAllDerivedTypes(from.GetType());
                 if (derivedTypesFrom.Count > 0)
                 {
@@ -357,9 +364,33 @@ namespace WastelandA23.Marshalling
                     }
 
                 }
+
+                //var reverseDerivedTypesFrom = findAllDerivedTypes(to.First());
+                //if (reverseDerivedTypesFrom.Count > 0)
+                //{
+                //    var derivedTypesTo = findAllDerivedTypes(from.GetType());
+                //    if (derivedTypesTo.Count > 0)
+                //    {
+                //        Func<List<Type>, List<Type>, List<Tuple<Type, Type>>> matchDerivedTypes =
+                //            delegate(List<Type> Source, List<Type> Destination)
+                //            {
+                //                return Source.Join(Destination,
+                //                    src => src.Name,
+                //                    dst => dst.Name,
+                //                    (src, dst) => Tuple.Create(src, dst)).ToList();
+                //            };
+                //        mapToEFModel(to.First(), (From)Activator.CreateInstance(from.GetType()),
+                //           matchDerivedTypes(derivedTypesFrom,
+                //           derivedTypesTo));
+                //    }
+
+                //}
             }
         }
 
+        #endregion
+
+        #region Marshalling -> Input
 
         static private string unmarshalFrom(ListBlock from)
         {
@@ -536,14 +567,9 @@ namespace WastelandA23.Marshalling
             return unmarshalFrom<T>(block);
         }
 
+        #endregion
 
-        static public string marshalFrom<T>(T source) where T : class
-        {
-            return null;
-        }
-
-
-        #region ReverseMarshalling Object -> ListBlock
+        #region Marshalling -> Output
 
         private struct TypeCheck
         {
@@ -635,95 +661,7 @@ namespace WastelandA23.Marshalling
 
         }
 
-        public interface IConversionDictionary
-        {
-            IDictionary<Type, Tuple<Func<Object, string>, Func<string, Object>>> GetConversionDictionary();
-        }
-
-        public static class TypeConverter
-        {
-
-            private static IDictionary<Type, Tuple<Func<Object, string>, Func<string, Object>>> ConversionDictionary;
-
-            static TypeConverter()
-            {
-                ConversionDictionary = 
-                    new Dictionary
-                        <
-                            Type,
-                            Tuple<Func<Object, string>,
-                            Func<string, Object>
-                        >>();
-                SetDefaultConverters();
-            }
-
-            private static void SetDefaultConverters()
-            {
-                Func<Object, string> outCon;
-                Func<string, Object> inCon;
-                Func<Func<Object,string>,Func<string,Object>,
-                    Tuple<Func<Object,string>,Func<string,Object>>> New = 
-                    delegate(Func<Object,string> oCon, Func<string,Object> iCon)
-                    {
-                        return Tuple.Create(oCon,iCon);
-                    };
-
-                // universal output converter function
-                outCon = i => Convert.ToString(i);
-
-                // int
-                var t = typeof(Int32);
-                inCon = i => Convert.ToInt32(i);
-                ConversionDictionary.Add(t, New(outCon, inCon));
-
-                // datetime
-                t = typeof(DateTime);
-                inCon = i => Convert.ToDateTime(i);
-                ConversionDictionary.Add(t, New(outCon, inCon));
-
-                // bool
-                t = typeof(bool);
-                inCon = _ => Convert.ToBoolean(_);
-                ConversionDictionary.Add(t, New(outCon, inCon));
-
-                // string
-                t = typeof(string);
-                inCon = _ => _;
-                ConversionDictionary.Add(t, New(outCon, inCon));
-            }
-
-            public static void SetConverters(IConversionDictionary ConversionDictionary)
-            {
-                TypeConverter.ConversionDictionary = ConversionDictionary.GetConversionDictionary();
-            }
-
-
-            public static Func<string, Object> GetInputConverter(Type inputType)
-            {
-                Tuple<Func<Object,string>,Func<string,Object>> retVal;
-                if (ConversionDictionary.TryGetValue(inputType, out retVal))
-                {
-                    if (retVal.Item2 != null)
-                    {
-                        return retVal.Item2;
-                    }
-                }
-                return null;
-            }
-
-            public static Func<Object, string> GetOutputConverter(Type outputType)
-            {
-                Tuple<Func<Object, string>, Func<string, Object>> retVal;
-                if (ConversionDictionary.TryGetValue(outputType, out retVal))
-                {
-                    if (retVal.Item1 != null)
-                    {
-                        return retVal.Item1;
-                    }
-                }
-                return null;
-            }
-        }
+        
 
         private static class PrimitiveTypes
         {
@@ -776,7 +714,7 @@ namespace WastelandA23.Marshalling
             var checkList = new List<bool> { isObject, isScalar, isScalarCollection, isObjectCollection };
             if (checkList.Where(_ => _ == true).Count() > 1)
             {
-                throw new UndefinedMarshallingStateException(
+                throw new AmbiguousMarshallingTypeException(
                     String.Format(
                         "Processed Type {0} has ambiguous marshalling type. It may only resolve to a singular type.",
                         source as Type
@@ -795,7 +733,7 @@ namespace WastelandA23.Marshalling
         {
             var returnBlock = new ListBlock();
 
-            var tl_test = createParamNumberDictionaryWithInheritance(source.GetType());
+            var memberInfoList = createParamNumberDictionaryWithInheritance(source.GetType());
             
             bool hasDerivedType = source.GetType().GetCustomAttribute<DerivedTypeAttribute>() != null
                 || source.GetType().BaseType.GetCustomAttribute<DerivedTypeAttribute>() != null;
@@ -806,7 +744,7 @@ namespace WastelandA23.Marshalling
                 inner = new ListBlock();
             }
 
-            foreach (var tpl in tl_test.OrderBy(_ => _.Key).ToList())
+            foreach (var tpl in memberInfoList.OrderBy(_ => _.Key).ToList())
             {
                 var mi = new ConversibleMemberInfo(tpl.Value.Item1);
                 var type = inspectType((mi.isPropertyInfo ? mi.PropertyInfo.PropertyType : mi.FieldInfo.FieldType), mi);
@@ -842,11 +780,15 @@ namespace WastelandA23.Marshalling
                         : mi.FieldInfo.GetValue(source);
                     if (!hasDerivedType)
                     {
-                        returnBlock.addElement(marshalFromObject(value));
+                        returnBlock.addElement(value !=  null  
+                            ? marshalFromObject(value) 
+                            : new ListBlock(new List<ListBlock>()));
                     }
                     else
                     {
-                        inner.addElement(marshalFromObject(value));
+                        inner.addElement(value != null
+                            ? marshalFromObject(value)
+                            : new ListBlock(new List<ListBlock>()));
                     }
                 }
                 else if (type.isObjectCollection)
@@ -999,13 +941,19 @@ namespace WastelandA23.Marshalling
             // check for null
             var ret = new List<ListBlock>();
             var mi = MemberInfo;
-            var srcList = 
-                (
-                    mi.isPropertyInfo 
-                    ? mi.PropertyInfo.GetValue(source) as IList 
-                    : mi.FieldInfo.GetValue(source) as IList
-                ).Cast<Te>().ToList();
-            srcList.ForEach(_ => ret.Add(marshalFromObject(_)));
+            try
+            {
+                var srcList = 
+                    (
+                        mi.isPropertyInfo 
+                        ? mi.PropertyInfo.GetValue(source) as IList 
+                        : mi.FieldInfo.GetValue(source) as IList
+                    ).Cast<Te>().ToList();
+                srcList.ForEach(_ => ret.Add(marshalFromObject(_)));
+            }
+            catch (System.ArgumentNullException)
+            {
+            }
             return ret;
         }
 
@@ -1065,10 +1013,6 @@ namespace WastelandA23.Marshalling
             return retStr;
         }
         #endregion
-
-
-
-
 
     }
 }
